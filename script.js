@@ -1,0 +1,8 @@
+const dialog=document.getElementById("estimateDialog");const form=document.getElementById("estimateForm");const projectType=document.getElementById("projectType");const steps=[...document.querySelectorAll(".form-step")];const nextBtn=document.getElementById("nextBtn");const backBtn=document.getElementById("backBtn");const progressBar=document.getElementById("progressBar");let currentStep=1;
+function renderStep(){steps.forEach(step=>step.classList.toggle("active",Number(step.dataset.step)===currentStep));backBtn.style.visibility=currentStep===1||currentStep===5?"hidden":"visible";nextBtn.textContent=currentStep===4?"Send request":"Next";nextBtn.style.display=currentStep===5?"none":"inline-flex";progressBar.style.width=(Math.min(currentStep,4)/4*100)+"%";}
+function openEstimate(project=""){currentStep=1;form.reset();if(project)projectType.value=project;renderStep();dialog.showModal();}
+document.querySelectorAll("[data-open-estimate]").forEach(button=>button.addEventListener("click",()=>openEstimate()));
+document.querySelectorAll("[data-project]").forEach(button=>button.addEventListener("click",()=>openEstimate(button.dataset.project)));
+nextBtn.addEventListener("click",()=>{const active=document.querySelector('.form-step[data-step="'+currentStep+'"]');const required=[...active.querySelectorAll("[required]")];if(!required.every(field=>field.reportValidity()))return;if(currentStep<4){currentStep+=1;}else{currentStep=5;}renderStep();});
+backBtn.addEventListener("click",()=>{if(currentStep>1&&currentStep<5){currentStep-=1;renderStep();}});
+dialog.addEventListener("close",()=>{currentStep=1;renderStep();});renderStep();
