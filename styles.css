@@ -99,6 +99,7 @@ nav a:hover{color:var(--warm)}
 .project-fit{display:block;color:#59524c;font-size:.82rem;font-weight:700;margin-top:20px;padding-top:16px;border-top:1px solid #eee8e0;width:100%}
 .project-arrow{display:block;color:var(--ink);font-size:.9rem;font-weight:900;margin-top:auto;padding-top:24px}
 .featured-card{background:#f7f2eb}
+.basement-card{grid-column:span 2;background:#fbf7ef;border-top:4px solid var(--warm)}
 .unsure-card{background:var(--ink);color:#fff;border-color:var(--ink)}
 .unsure-card .project-kicker,.unsure-card .project-arrow{color:var(--warm)}
 .unsure-card .project-description,.unsure-card .project-fit{color:#c8c2ba}
@@ -184,6 +185,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--warm);outline-of
   .authority-grid{grid-template-columns:1fr 1fr}
   .split-heading,.service-area-grid{grid-template-columns:1fr;gap:26px}
   .project-grid,.steps{grid-template-columns:1fr 1fr}
+  .basement-card{grid-column:span 1}
 }
 @media(max-width:620px){
   .wrap{width:min(calc(100% - 28px),var(--max))}
