@@ -31,7 +31,7 @@ nav a{text-decoration:none;font-family:Georgia,"Times New Roman",serif;font-size
 .phone-link{padding:13px 20px;background:var(--warm);color:#fff;text-decoration:none;font-family:Georgia,"Times New Roman",serif;font-weight:700}
 
 .hero{display:grid;grid-template-columns:44% 56%;min-height:650px;background:var(--paper)}
-.hero-copy-panel{display:flex;align-items:center;padding:68px 0 60px}
+.hero-copy-panel{display:flex;align-items:flex-start;padding:64px 0 52px}
 .hero-inner{width:min(90%,560px);margin-left:auto;margin-right:44px}
 .eyebrow{font-size:.72rem;letter-spacing:.28em;font-weight:800;color:var(--warm-dark);margin-bottom:20px}
 .eyebrow:after{content:"";display:block;width:44px;height:2px;background:var(--warm);margin-top:14px}
