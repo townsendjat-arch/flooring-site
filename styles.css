@@ -1,11 +1,11 @@
 :root{
-  --ink:#16181B;
-  --paper:#f7f4ee;
+  --ink:#071e35;
+  --paper:#f3f6f9;
   --white:#fff;
-  --warm:#D99B43;
-  --warm-dark:#A76718;
-  --colorado-red:#D8442F;
-  --colorado-blue:#4B7896;
+  --warm:#FFD21C;
+  --warm-dark:#735500;
+  --colorado-red:#ED2028;
+  --colorado-blue:#0B2D4D;
   --line:#ddd6cc;
   --muted:#625f5a;
   --max:1180px;
@@ -22,10 +22,12 @@ a{color:inherit}
 button,input,select,textarea{font:inherit}
 .wrap{width:min(calc(100% - 44px),var(--max));margin:auto}
 
-.site-header{position:sticky;top:0;z-index:20;background:rgba(22,24,27,.97);backdrop-filter:blur(10px);border-bottom:1px solid #2b2e32}
+.site-header{position:sticky;top:0;z-index:20;background:rgba(0,0,0,.97);backdrop-filter:blur(10px);border-bottom:1px solid #2b2e32}
 .nav{min-height:76px;display:flex;align-items:center;gap:26px}
 .brand{display:flex;align-items:center;gap:12px;text-decoration:none;margin-right:auto;color:#fff}
-.brand-mark{width:42px;height:42px;border:2px solid var(--warm);display:grid;place-items:center;color:var(--warm);font-weight:900;font-size:.9rem;letter-spacing:-.04em}
+/* Show the original logo region of the supplied business card without redrawing it. */
+.brand-logo{position:relative;display:block;flex:0 0 100px;width:100px;aspect-ratio:525/258;overflow:hidden;background:#000}
+.brand-logo img{position:absolute;width:214.285714%;max-width:none;height:auto;left:-7.428571%;top:-23.255814%;display:block}
 .brand strong{display:block;font-family:Georgia,"Times New Roman",serif;font-size:1.25rem;color:#fff}
 .brand small{display:block;font-size:.59rem;letter-spacing:.2em;color:var(--warm);margin-top:3px}
 nav{display:flex;gap:30px}
@@ -125,7 +127,7 @@ nav a:hover{color:var(--warm)}
 .muted{background:#f7f4ef}
 .steps{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
 .steps li{background:#fff;border:1px solid var(--line);padding:22px}
-.steps li>span{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:var(--warm);color:#fff;font-weight:800;margin-bottom:22px}
+.steps li>span{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:var(--warm);color:var(--ink);font-weight:800;margin-bottom:22px}
 .steps strong{font-family:Georgia,"Times New Roman",serif;font-size:1.2rem}
 .steps p{color:var(--muted);margin-top:8px}
 .final-grid{display:flex;align-items:center;justify-content:space-between;gap:40px}
@@ -190,7 +192,10 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--warm);outline-of
 @media(max-width:620px){
   .wrap{width:min(calc(100% - 28px),var(--max))}
   .brand small{display:none}
-  .brand-mark{width:36px;height:36px;font-size:.8rem}
+  .brand-logo{width:66px;flex-basis:66px}
+  .brand strong{font-size:1.05rem}
+  .nav{gap:10px}
+  .phone-link{font-size:.875rem}
   .phone-link{padding:11px 13px}
   .phone-link span{display:none}
   .hero-copy-panel{padding:34px 0 28px}
@@ -203,3 +208,15 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--warm);outline-of
   .final-grid,.footer-grid,.review-coming-soon{flex-direction:column;align-items:flex-start}
   .hero-trust{gap:22px}
 }
+
+.owner-intro{margin-top:22px;font-weight:800;color:var(--ink)}
+.owner-intro span{display:block;font-size:.875rem;font-weight:500;color:var(--muted)}
+.direct-contact{display:flex;flex-wrap:wrap;gap:12px 24px;margin-top:20px;font-size:1rem;font-weight:700}
+.direct-contact a{text-underline-offset:4px}
+.direct-contact a:hover,.footer-contact a:hover{color:var(--warm-dark)}
+.footer-brand p{margin-top:10px;font-size:.9rem}
+.footer-contact{display:flex;flex-direction:column;gap:10px;overflow-wrap:anywhere}
+footer{background:#000}
+.footer-grid{align-items:flex-start}
+a:focus-visible,button:focus-visible{outline:3px solid var(--colorado-red);outline-offset:4px}
+@media(max-width:360px){.brand-logo{width:50px;flex-basis:50px}.brand strong{font-size:.9rem}.phone-link{padding:10px 8px}.brand{gap:8px}}

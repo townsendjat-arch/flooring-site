@@ -11,14 +11,14 @@
   <meta property="og:url" content="https://townsendjat-arch.github.io/flooring-site/">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="theme-color" content="#16181B">
+  <meta name="theme-color" content="#071e35">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <header class="site-header">
   <div class="wrap nav">
     <a class="brand" href="#top">
-      <span class="brand-mark" aria-hidden="true">CM</span>
+      <span class="brand-logo"><img src="assets/cm-tile-stone-card.png" width="1125" height="675" alt="CM Colorado mountain logo"></span>
       <span>
         <strong>CM Tile & Stone</strong>
         <small>QUALITY WORK • BUILT TO LAST</small>
@@ -29,7 +29,7 @@
       <a href="#process">How It Works</a>
       <a href="#estimate">Free Estimate</a>
     </nav>
-    <a class="phone-link" href="tel:+13033568421">☎ <span>Call / Text</span></a>
+    <a class="phone-link" href="tel:+13033568421" aria-label="Call Charles at (303) 356-8421">Call Charles</a>
   </div>
 </header>
 
@@ -39,11 +39,13 @@
       <div class="hero-inner">
         <p class="eyebrow">QUALITY CRAFTSMANSHIP. LASTING RESULTS.</p>
         <h1>Custom tile work built from the inside out.</h1>
-        <p class="hero-copy">Showers, bathrooms, and flooring done with care, preparation, and detail that matter long after the job is finished.</p>
+        <p class="hero-copy">Tile, stone, showers, backsplashes, and flooring done with care, preparation, and detail that matter long after the job is finished.</p>
+        <p class="owner-intro">Charles Marquez <span>Owner &amp; Installer</span></p>
         <div class="hero-actions">
           <a class="btn primary" href="#work">See Our Work <span aria-hidden="true">→</span></a>
           <button class="btn secondary" data-open-estimate>Talk About Your Project</button>
         </div>
+        <div class="direct-contact"><a href="tel:+13033568421">Call (303) 356-8421</a><a href="sms:+13033568421">Text Charles</a></div>
         <div class="hero-trust">
           <div><span>✓</span><strong>Quality<br>Workmanship</strong></div>
           <div><span>◉</span><strong>Local &<br>Trusted</strong></div>
@@ -209,6 +211,14 @@
           <span class="project-arrow">Tell us about it →</span>
         </button>
 
+        <button class="project-card" data-project="Stone">
+          <span class="project-kicker">STONE</span>
+          <strong>Stone</strong>
+          <span class="project-description">Tell Charles about the stone work you have in mind, the space, and the finish you want.</span>
+          <span class="project-fit">Good fit for: planning a stone installation</span>
+          <span class="project-arrow">Talk about stone work →</span>
+        </button>
+
         <button class="project-card" data-project="Tile Repair">
           <span class="project-kicker">REPAIR</span>
           <strong>Tile Repair</strong>
@@ -257,7 +267,7 @@
     <div class="wrap service-area-grid">
       <div>
         <p class="eyebrow">LOCAL TILE & STONE WORK</p>
-        <h2>Serving homeowners across the Denver metro area.</h2>
+        <h2>Proudly serving Colorado.</h2>
         <p class="service-area-lead">CM Tile & Stone works with homeowners on showers, bathrooms, backsplashes, tile, stone, flooring, and basement refinishing projects throughout the area.</p>
         <p class="service-area-note">Not sure if your project is within range? Send your ZIP code and we’ll confirm before scheduling an estimate.</p>
       </div>
@@ -302,8 +312,17 @@
 
 <footer>
   <div class="wrap footer-grid">
-    <strong>CM Tile & Stone</strong>
-    <span><a href="tel:+13033568421">(303) 356-8421</a> • <a href="mailto:cmtile303@gmail.com">cmtile303@gmail.com</a></span>
+    <div class="footer-brand">
+      <a class="brand" href="#top"><span class="brand-logo"><img src="assets/cm-tile-stone-card.png" width="1125" height="675" loading="lazy" alt="CM Colorado mountain logo"></span><span><strong>CM Tile &amp; Stone</strong><small>QUALITY WORK • BUILT TO LAST</small></span></a>
+      <p>Charles Marquez · Owner &amp; Installer</p>
+      <p>Proudly serving Colorado</p>
+    </div>
+    <div class="footer-contact">
+      <a href="tel:+13033568421">Call (303) 356-8421</a>
+      <a href="sms:+13033568421">Text Charles</a>
+      <a href="mailto:cmtile303@gmail.com">cmtile303@gmail.com</a>
+      <a href="https://www.instagram.com/cm_tile303/" target="_blank" rel="noopener noreferrer">Instagram @cm_tile303</a>
+    </div>
   </div>
 </footer>
 
@@ -329,6 +348,7 @@
           <label class="choice-card"><input type="radio" name="projectType" value="Bathroom Tile"><span><strong>Bathroom Tile</strong><small>Floors, walls, tub surrounds</small></span></label>
           <label class="choice-card"><input type="radio" name="projectType" value="Flooring"><span><strong>Flooring</strong><small>Tile or hard-surface installation</small></span></label>
           <label class="choice-card"><input type="radio" name="projectType" value="Backsplash"><span><strong>Backsplash</strong><small>Kitchen or feature wall</small></span></label>
+          <label class="choice-card"><input type="radio" name="projectType" value="Stone"><span><strong>Stone</strong><small>Discuss your stone installation</small></span></label>
           <label class="choice-card"><input type="radio" name="projectType" value="Tile Repair"><span><strong>Tile Repair</strong><small>Damage or problem area</small></span></label>
           <label class="choice-card"><input type="radio" name="projectType" value="Basement Refinishing"><span><strong>Basement Refinishing</strong><small>Finish or update basement living space</small></span></label>
           <label class="choice-card"><input type="radio" name="projectType" value="Not Sure Yet"><span><strong>Not Sure Yet</strong><small>We can help identify the right path</small></span></label>
