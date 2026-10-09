@@ -225,6 +225,9 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--colorado-red);outli
 /* Estimate flow states; existing page layout and brand styling are unchanged. */
 [hidden]{display:none!important}
 .form-step:focus{outline:none}
+.form-availability{margin-top:20px;padding:14px;border:1px solid var(--warm);background:#fff7e8;color:var(--ink);line-height:1.5}
+.form-availability a{text-underline-offset:3px;font-weight:800}
+.form-availability:focus{outline:2px solid var(--warm);outline-offset:2px}
 .form-status:not(:empty),.form-error:not(:empty){margin-top:18px;padding:12px;border:1px solid var(--line)}
 .form-error:not(:empty){border-color:#a21f27;color:#80171e;background:#fff5f5}
 .form-error:focus{outline:2px solid var(--colorado-red);outline-offset:2px}

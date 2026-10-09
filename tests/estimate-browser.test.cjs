@@ -29,8 +29,9 @@ async function pageFor(t, mode='unconfigured', options={}) {
   // Block every non-local request. Provider behavior is simulated in-page;
   // no test payload, even fake data, can reach Formspree or another host.
   await page.route('**/*', route=>route.request().url().startsWith(origin+'/')?route.continue():route.abort());
+  const endpoint = mode==='unconfigured' ? '' : mode==='invalid-config' ? 'https://example.invalid/f/mockonly' : 'https://formspree.io/f/mockonly';
+  await page.route('**/estimate-config.js',route=>route.fulfill({contentType:'text/javascript',body:`export const estimateConfig = {endpoint:${JSON.stringify(endpoint)},timeoutMs:${mode==='slow'?5000:60}};`}));
   if (mode!=='unconfigured') {
-    await page.route('**/estimate-config.js',route=>route.fulfill({contentType:'text/javascript',body:`export const estimateConfig = {endpoint:"https://formspree.io/f/mockonly",timeoutMs:${mode==='slow'?5000:60}};`}));
     await page.addInitScript(({mode})=>{
       window.testRequests=[];
       window.fetch=async (url,options)=>{
@@ -41,6 +42,7 @@ async function pageFor(t, mode='unconfigured', options={}) {
         if (mode==='slow') return new Promise(resolve=>{window.finishSend=()=>resolve(response());});
         if (mode==='retry' && window.testRequests.length===1) return {ok:false,status:422};
         if (mode==='server-error') return {ok:false,status:503};
+        if (mode==='rate-limit') return {ok:false,status:429};
         if (mode==='unconfirmed') return {ok:true,json:async()=>({})};
         return response();
       };
@@ -67,6 +69,59 @@ async function reachContact(page) {
   await page.locator('[name=phone]').fill('3035550100');
 }
 async function errorContains(page,text){await page.waitForFunction(text=>document.querySelector('#formError').textContent.includes(text),text);}
+
+for (const viewport of [{width:1280,height:900},{width:375,height:812}]) {
+  test(`${viewport.width}px: unavailable notice is first, visible on open, and offers existing contact links`,async t=>{
+    const page=await pageFor(t,'unconfigured',{viewport});
+    const notice=page.locator('#formAvailability');
+    assert.equal(await notice.isVisible(),true);
+    assert.match(await notice.textContent(),/Online requests are not available yet/);
+    assert.equal(await notice.locator('a').nth(0).getAttribute('href'),'tel:+13033568421');
+    assert.equal(await notice.locator('a').nth(1).getAttribute('href'),'sms:+13033568421');
+    assert.equal(await notice.evaluate(el=>Boolean(el.compareDocumentPosition(document.querySelector('.form-step')) & Node.DOCUMENT_POSITION_FOLLOWING)),true);
+    assert.equal(await notice.evaluate(el=>{
+      const bounds=el.getBoundingClientRect(), dialog=document.querySelector('#estimateDialog').getBoundingClientRect();
+      return bounds.top>=Math.max(0,dialog.top) && bounds.bottom<=Math.min(innerHeight,dialog.bottom);
+    }),true,'The full notice must be in view before filling any fields');
+    assert.equal(await notice.evaluate(el=>el===document.activeElement),true);
+    assert.match(await page.locator('#estimateDialog').getAttribute('aria-describedby'),/formAvailability/);
+    await page.keyboard.press('Tab');
+    assert.equal(await notice.locator('a').nth(0).evaluate(el=>el===document.activeElement),true);
+    await page.keyboard.press('Tab');
+    assert.equal(await notice.locator('a').nth(1).evaluate(el=>el===document.activeElement),true);
+    await page.keyboard.press('Shift+Tab');
+    assert.equal(await notice.locator('a').nth(0).evaluate(el=>el===document.activeElement),true);
+    await page.locator('#estimateDialog').evaluate(el=>{el.scrollTop=el.scrollHeight;});
+    await page.keyboard.press('Escape');
+    await page.locator('[data-open-estimate]').first().click();
+    assert.equal(await notice.isVisible(),true);
+    assert.equal(await notice.evaluate(el=>el===document.activeElement),true);
+    assert.equal(await notice.evaluate(el=>{
+      const bounds=el.getBoundingClientRect(), dialog=document.querySelector('#estimateDialog').getBoundingClientRect();
+      return bounds.top>=Math.max(0,dialog.top) && bounds.bottom<=Math.min(innerHeight,dialog.bottom);
+    }),true,'Reopening must bring the full notice back into view');
+  });
+  test(`${viewport.width}px: valid mocked configuration hides notice and retains contact alternatives`,async t=>{
+    const page=await pageFor(t,'success',{viewport});
+    assert.equal(await page.locator('#formAvailability').isHidden(),true);
+    assert.equal(await page.locator('#estimateDialog').getAttribute('aria-describedby'),'estimateIntro');
+    assert.equal(await page.locator('.form-contact a[href="tel:+13033568421"]').count(),1);
+    assert.equal(await page.locator('.form-contact a[href="sms:+13033568421"]').count(),1);
+    await page.keyboard.press('Tab');
+    assert.equal(await page.locator('[name=projectType]').first().evaluate(el=>el===document.activeElement),true);
+    await page.keyboard.press('Shift+Tab');
+    assert.equal(await page.locator('#closeEstimate').evaluate(el=>el===document.activeElement),true);
+    await page.keyboard.press('Enter');
+    assert.equal(await page.locator('#estimateDialog').evaluate(el=>el.open),false);
+  });
+}
+test('invalid configuration keeps the early notice and cannot submit',async t=>{
+  const page=await pageFor(t,'invalid-config');
+  assert.equal(await page.locator('#formAvailability').isVisible(),true);
+  await reachContact(page);await page.locator('#nextBtn').click();
+  await errorContains(page,'Nothing was sent');await step(page,4);
+  assert.equal(await page.evaluate(()=>testRequests.length),0);
+});
 
 test('required choices, Enter progression, textarea newline, close/Escape preserve inputs and focus',async t=>{
   const page=await pageFor(t);
@@ -116,13 +171,16 @@ test('success, duplicate submits, closing during send, confirmation focus and re
   await page.locator('#doneEstimate').click();await page.locator('[data-open-estimate]').first().click();await step(page,5);
   await page.locator('#newEstimate').click();await step(page,1);assert.equal(await page.locator('[name=name]').inputValue(),'');
 });
-for(const [mode,message] of [['network','could not confirm'],['timeout','timed out'],['unconfirmed','could not confirm'],['server-error','could not confirm']]) {
+for(const [mode,message] of [['network','could not confirm'],['timeout','timed out'],['unconfirmed','could not confirm'],['server-error','could not confirm'],['rate-limit','service is busy']]) {
   test(`${mode} retains inputs and allows retry without false success`,async t=>{
     const page=await pageFor(t,mode);await reachContact(page);await page.locator('#nextBtn').click();
     await errorContains(page,message);await step(page,4);
     assert.equal(await page.locator('[name=name]').inputValue(),'Test visitor');
     assert.equal(await page.locator('#nextBtn').isDisabled(),false);
     assert.equal(await page.locator('#formError').evaluate(el=>el===document.activeElement),true);
+    await page.locator('#nextBtn').click();await errorContains(page,message);await step(page,4);
+    assert.equal(await page.evaluate(()=>testRequests.length),2);
+    assert.equal(await page.locator('[name=name]').inputValue(),'Test visitor');
   });
 }
 test('provider rejection permits one deliberate retry and then success',async t=>{
@@ -147,4 +205,45 @@ test('a different project card reopens step one with the new choice and preserve
   assert.equal(await page.locator('[name=projectType][value="Custom Shower"]').isChecked(),true);
   await page.locator('#nextBtn').click();
   assert.equal(await page.locator('[name=details]').inputValue(),'Keep these draft details');
+});
+
+test('all project cards and generic estimate buttons open and return keyboard focus',async t=>{
+  const page=await pageFor(t);
+  await page.keyboard.press('Escape');
+  const triggers=page.locator('[data-open-estimate], [data-project]');
+  for(let index=0;index<await triggers.count();index+=1){
+    const trigger=triggers.nth(index);
+    await trigger.click();await step(page,1);
+    const project=await trigger.getAttribute('data-project');
+    if(project) assert.equal(await page.locator(`[name=projectType][value="${project}"]`).isChecked(),true);
+    await page.keyboard.press('Escape');
+    assert.equal(await trigger.evaluate(el=>el===document.activeElement),true);
+  }
+});
+test('whitespace is rejected and a provided optional phone remains validated',async t=>{
+  const page=await pageFor(t,'success');await reachContact(page);
+  await page.locator('[name=name]').fill('   ');await page.locator('#nextBtn').click();
+  assert.equal(await page.locator('[name=name]').getAttribute('aria-invalid'),'true');
+  await page.locator('[name=name]').fill('Test visitor');
+  await page.locator('[name=contactPreference][value=Email]').check();
+  await page.locator('[name=email]').fill('visitor@example.invalid');
+  await page.locator('[name=phone]').fill('123');await page.locator('#nextBtn').click();
+  assert.equal(await page.locator('[name=phone]').getAttribute('aria-invalid'),'true');
+  assert.equal(await page.evaluate(()=>testRequests.length),0);
+  await page.locator('[name=phone]').fill('');await page.locator('#nextBtn').click();
+  await page.waitForSelector('[data-step="5"].active');
+  const payload=await page.evaluate(()=>testRequests[0].payload);
+  assert.equal(payload.contactPreference,'Email');assert.equal('phone' in payload,false);
+});
+test('mobile rejection, close/reopen, retry and confirmation preserve draft and prevent duplicate completion',async t=>{
+  const page=await pageFor(t,'retry',{viewport:{width:375,height:812}});await reachContact(page);
+  await page.locator('#nextBtn').click();await errorContains(page,'did not accept');
+  await page.locator('#closeEstimate').click();await page.locator('[data-open-estimate]').first().click();await step(page,4);
+  assert.equal(await page.locator('[name=name]').inputValue(),'Test visitor');
+  await page.locator('#nextBtn').click();await page.waitForSelector('[data-step="5"].active');
+  await page.locator('#estimateForm').evaluate(form=>form.requestSubmit());
+  assert.equal(await page.evaluate(()=>testRequests.length),2);
+  assert.equal(await page.locator('#estimateDialog').evaluate(el=>el.scrollWidth<=el.clientWidth),true);
+  await page.locator('#newEstimate').click();await step(page,1);
+  assert.equal(await page.locator('[name=name]').inputValue(),'');
 });

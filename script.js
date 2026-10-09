@@ -11,6 +11,10 @@ const stepLabel = document.getElementById("stepLabel");
 const stepHint = document.getElementById("stepHint");
 const status = document.getElementById("formStatus");
 const errorStatus = document.getElementById("formError");
+const availabilityNotice = document.getElementById("formAvailability");
+const onlineRequestsEnabled = isConfigured(estimateConfig.endpoint);
+availabilityNotice.hidden = onlineRequestsEnabled;
+dialog.setAttribute("aria-describedby", onlineRequestsEnabled ? "estimateIntro" : "estimateIntro formAvailability");
 const field = name => form.elements.namedItem(name);
 let currentStep = 1;
 let sending = false;
@@ -91,7 +95,11 @@ function openEstimate(project = "", trigger) {
   updateContactRequirements();
   renderStep();
   dialog.showModal();
-  steps.find(step => Number(step.dataset.step) === currentStep).focus();
+  // Keep the early availability notice in view, including on a small screen.
+  const focusTarget = !onlineRequestsEnabled && currentStep === 1
+    ? availabilityNotice
+    : steps.find(step => Number(step.dataset.step) === currentStep);
+  focusTarget.focus();
 }
 
 document.querySelectorAll("[data-open-estimate]").forEach(button => {

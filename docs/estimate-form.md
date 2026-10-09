@@ -1,10 +1,10 @@
 # Estimate form: review and launch checklist
 
-Status: proposed code only. The Formspree endpoint is deliberately empty, so nothing is transmitted and no success screen is shown on Send. Do not merge or deploy without the owner's approval. This change does not create a provider account, configure an inbox, buy a plan, or change hosting.
+Status: proposed code only. The Formspree endpoint is deliberately empty, so nothing is transmitted and no success screen is shown on Send. An early notice, before the first question, explains that online requests are unavailable and offers the existing call/text links. The notice remains for an empty or invalid endpoint and is hidden when the configured endpoint passes the same URL check used before sending. Do not merge or deploy without the owner's approval. This change does not create a provider account, configure an inbox, buy a plan, or change hosting.
 
 ## Scope and architecture
 
-The existing static site, imagery, contact links, and branding are preserved. The four-step estimate dialog now validates every supplied field, requires the chosen contact channel, handles keyboard submission and closing, and waits for explicit provider acceptance before confirmation. The browser adapter is in `estimate-service.js`; public configuration is in `estimate-config.js`. No server code is included. Client validation can be bypassed and is not a security boundary.
+The existing static site, imagery, contact links, and branding are preserved. The unavailable notice receives initial focus on step one so it stays in view before customers fill out the form, and is included in the dialog description only while displayed. The four-step estimate dialog now validates every supplied field, requires the chosen contact channel, handles keyboard submission and closing, and waits for explicit provider acceptance before confirmation. The browser adapter is in `estimate-service.js`; public configuration is in `estimate-config.js`. No server code is included. Client validation can be bypassed and is not a security boundary.
 
 First launch is text-only: project type, optional details, ZIP/city, timing, optional space note, name, preferred contact method, and the contact fields provided. Phone is required for Text/Phone call; email is required for Email. A supplied optional email or phone is still validated. Photo uploads are absent; visitors can discuss photos directly later. Future uploads require a separate decision about storage, limits, access, consent, retention, and safe file handling.
 
@@ -65,6 +65,29 @@ These references describe provider features. None of those account settings has 
 
 ## Verification of this proposal (2026-10-09)
 
-Passed: JavaScript syntax checks for all three modules; four mocked adapter unit tests (configuration restrictions, success contract, rejection/ambiguous responses, network/timeout); `git diff --check`; independent code review with identified reopen/5xx/live-status issues fixed.
+### Passed
 
-Not executed successfully: eleven browser scenarios are included, but Chromium cannot start in this execution sandbox (`socket() failed: Operation not permitted`), including the permitted retry. The supported cloud browser could not reach the isolated localhost server. These are infrastructure failures, not browser-test passes. No visual, screen-reader, Safari/iOS, Android, provider-account, recipient-mailbox, or real-submission verification was completed. Rerun the browser suite in a suitable local/CI environment before approval to launch. No deployment workflow has been added.
+- `npm run check`: syntax checks for all three production JavaScript modules.
+- `node --check tests/estimate-browser.test.cjs`: browser-test syntax.
+- Four mocked adapter unit tests: destination restrictions; explicit acceptance and transport settings; rejected, malformed, and ambiguous responses; network failures and timeouts.
+- `git diff --check` and static inspection of the conditional notice, preserved contact URLs, and unchanged empty production endpoint.
+
+### Local browser execution blocked, not passed
+
+The current command was `CHROMIUM_PATH=/usr/bin/chromium npm test`. The aggregate runner returned 4 passed and 20 failed. All 20 browser entries failed in the shared browser-startup hook, before any browser scenario executed; these are infrastructure errors, not observed application assertion failures or browser passes. Chromium aborted at `chrome/browser/process_singleton_posix.cc:297`: `socket() failed: Operation not permitted (1)`. It also reported a read-only Crash Reports settings path. The earlier permitted execution retry hit the same socket restriction.
+
+The supported cloud browser cannot reach the isolated local HTTP server. Its local-file navigation is explicitly rejected (only HTTP/HTTPS navigation is supported), and its supported automation API has no request interception, initialization script injection, or writable page evaluation for this suite's fake transport and network guards. No supported remote Playwright execution bridge is exposed. No public preview or deployment was created to work around these limits.
+
+Twenty mocked browser scenarios are ready to run in a suitable executor. They cover desktop/mobile notice visibility before input, valid and invalid configuration, existing call/text links, Tab/Shift+Tab and Enter/Escape, all project/open buttons, required and optional validation, whitespace, repeated submissions, close/reopen, draft preservation, provider rejection and retry, rate limiting, network/timeout/ambiguous/server errors, confirmation/reset, and mobile overflow/recovery. Every outside request is blocked; provider outcomes are simulated in-page with fictional data.
+
+### Test-only GitHub Actions runner
+
+A narrowly scoped workflow is included for PR #1 on `review/estimate-form-safe-submit`. It runs on the standard `ubuntu-latest` runner, checks out the exact PR head SHA, requests only read access to repository contents, does not persist checkout credentials, and runs syntax checks plus the mocked unit/browser suite. No secrets, live delivery, deployment steps, artifact uploads, or caches are used. The job has a ten-minute limit and superseded runs are canceled. GitHub [documents standard public-repository runners as free](https://docs.github.com/en/billing/concepts/product-billing/github-actions). CI results must be checked for the exact published commit; inclusion of this workflow alone is not a test pass.
+
+### Before launch
+
+Run the browser suite with Chromium and the HTTP server in the same supported executor, fix any assertion failures, and visually inspect desktop/mobile layouts. Actual screen-reader behavior, Safari/iOS, Android devices, provider-account protections, recipient-mailbox delivery, and real submissions remain unverified. Complete the owner/provider checklist above, then obtain separate merge/deploy approval. Passing a mocked test is not evidence of real delivery.
+
+### Publication guardrails rechecked
+
+Before this same-branch update, `main` remained at `3a845667aa1acace923ce200b3b6f3544ec20e0e`; the PR remained draft at its prior head. The pre-update repository tree had no `.github/workflows` or third-party deployment config, and all ten observed Actions runs remain the built-in Pages workflow on `main`, most recently on 2026-10-08. The existing review commit had no external status checks. Deployment settings, deployment records, and webhooks are not exposed by the connector, so this is observed evidence rather than an audit of every account integration. Only the bounded test workflow described above is added. No deployment workflow, hosting setting, live endpoint, account, purchase, merge, or deployment is included.

@@ -1,0 +1,37 @@
+name: Estimate form browser tests
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: estimate-form-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  mocked-browser-tests:
+    if: github.event.pull_request.number == 1 && github.head_ref == 'review/estimate-form-safe-submit' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CI: true
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Install pinned test dependency without lifecycle scripts
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Install Chromium and its system dependencies
+        run: npx --no-install playwright install --with-deps chromium
+      - name: Check JavaScript syntax
+        run: npm run check && node --check tests/estimate-browser.test.cjs
+      - name: Run unit and mocked browser tests
+        run: npm test
