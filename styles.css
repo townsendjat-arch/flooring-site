@@ -253,3 +253,4 @@ button:disabled{cursor:wait;opacity:.65}
 #estimateDialog .form-field>label{margin-bottom:0}
 #estimateDialog .two-col,#estimateDialog .choice-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,16rem),1fr))}
 #estimateDialog .confirmation-mark{color:var(--ink)}
+#estimateDialog input::placeholder,#estimateDialog textarea::placeholder{color:var(--muted);opacity:1}

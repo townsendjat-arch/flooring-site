@@ -443,19 +443,23 @@ test('location and timing errors persist beside fields and clear on correction',
   await page.locator('#nextBtn').click();await step(page,4);
 });
 
-test('focused field and notice boundaries contrast at least 3:1 with adjacent backgrounds',async t=>{
+test('field and focus boundaries meet 3:1 and placeholder text meets 4.5:1 contrast',async t=>{
   const page=await pageFor(t);
-  const contrast=async(selector,property,background)=>page.locator(selector).evaluate((el,{property,background})=>{
+  const contrast=async(selector,property,background,pseudo=null)=>page.locator(selector).evaluate((el,{property,background,pseudo})=>{
     const rgb=s=>s.match(/[\d.]+/g).slice(0,3).map(Number);
     const light=rgb=>rgb.map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;}).reduce((s,v,i)=>s+v*[.2126,.7152,.0722][i],0);
-    const a=light(rgb(getComputedStyle(el)[property])),b=light(rgb(background));
+    const a=light(rgb(getComputedStyle(el,pseudo)[property])),b=light(rgb(background));
     return (Math.max(a,b)+.05)/(Math.min(a,b)+.05);
-  },{property,background});
+  },{property,background,pseudo});
   assert.ok(await contrast('#formAvailability','outlineColor','rgb(255, 247, 232)')>=3);
   await page.locator('[name=projectType]').first().check();await page.locator('#nextBtn').click();
   await page.keyboard.press('Tab');
   assert.ok(await contrast('[name=details]','outlineColor','rgb(255, 255, 255)')>=3);
   assert.ok(await contrast('[name=details]','borderTopColor','rgb(255, 255, 255)')>=3);
+  for(const name of ['details','location','spaceNote']) {
+    assert.ok(await contrast(`[name=${name}]`,'color','rgb(255, 255, 255)','::placeholder')>=4.5);
+    assert.equal(await page.locator(`[name=${name}]`).evaluate(el=>getComputedStyle(el,'::placeholder').opacity),'1');
+  }
 });
 
 test('keyboard focus can reach every contact control inside a short viewport',async t=>{

@@ -4,6 +4,7 @@ Date: 2026-10-09. Scope: the existing estimate dialog in draft PR #1, on `review
 
 ## Changes and why
 
+- Set an explicit opaque muted color for example/placeholder text. Final WebKit screenshots exposed its native #a9a9a9-on-white treatment (2.35:1), even though axe marked that node inconclusive. A dedicated regression requires placeholder text to meet 4.5:1.
 - Darkened form field boundaries and focus indicators using existing neutral/ink colors. Original boundary and focus colors were approximately 1.44:1 and 1.45:1 against white. The new borders measure 4.27:1 against white and ink focus outlines measure 16.85:1 against white, with regression assertions for at least 3:1.
 - Added persistent, specific validation explanations next to each invalid field/group, associated through `aria-describedby`. Removed reliance on transient native validation popups. Input focus still moves to the first invalid control; provider failures retain a focused alert and the draft.
 - Clear invalid state and its explanation for the whole radio group when a choice changes. Previously, choosing an option after an empty Continue left the other valid group members falsely marked invalid.
@@ -41,3 +42,13 @@ Use this branch in an approved local/private preview, not the unchanged live pag
 ## Release gates remain
 
 Keep PR #1 draft. No merge, deployment, hosting/DNS change, provider account, live endpoint, purchase, or other website modification is part of this review. Provider/server-side validation and spam protection, approved recipient/privacy/terms, actual delivery, device/Safari/screen-reader checks, and explicit release approval remain before launch. A passing mock suite is not evidence of inbox delivery.
+
+## Recorded review evidence
+
+The final-code predecessor `6092742d1028009579d4fc0c06e4b6efecb73b9e` passed all 37 tests in both engine jobs: 33 browser scenarios and the same four unit tests per job. [Run 37983342346](https://github.com/townsendjat-arch/flooring-site/actions/runs/37983342346) checked out that exact head. Subsequent screenshot inspection identified the WebKit placeholder contrast issue above, so that pass is historical evidence, not a pass for the newer fix. The PR description records the latest exact-head results after that fix.
+
+For that review, 100 actual screenshots and 40 state/layout summaries per engine were inspected (100 overlapping-position axe executions per engine). No screenshot layout collision or horizontal clipping of labels, errors, or actions was found in the tested configurations. Long placeholder examples inside single-line text inputs are naturally cropped by the input, while the separate labels remain visible. The enlarged-text field/choice grids now stack cleanly. These screenshots do not establish touch hardware, browser-zoom, screen-reader, or live-delivery behavior.
+
+Axe returned zero violations but retained 20 inconclusive color-contrast node/state assessments per engine, covering background overlap/obscuration detection and the non-text check mark. Those are not recorded as automated passes. The screenshots made the WebKit placeholder defect visible and it was fixed. Other flagged intro/help/privacy/contact text was visually unobscured, and the decorative check mark uses the dark ink color; a human accessibility review remains required.
+
+Earlier review iterations also corrected two test-harness problems (version logging and explicit browser context for axe) and made tab-cycle assertions respect native browser-chrome traversal. Their failed runs are not represented as product regressions or passes. The original delivery regressions stayed green once the harness ran. The real WebKit short-viewport focus-scroll failure was reproduced and fixed before the green predecessor run.
