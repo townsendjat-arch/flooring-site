@@ -342,7 +342,7 @@
     <div class="form-progress-copy"><span id="stepLabel">Step 1 of 4</span><span id="stepHint">Project type</span></div>
     <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
 
-    <section tabindex="-1" aria-label="Project type" class="form-step active" data-step="1" data-hint="Project type">
+    <section tabindex="-1" aria-describedby="stepLabel" aria-label="Project type" class="form-step active" data-step="1" data-hint="Project type">
       <fieldset class="choice-fieldset">
         <legend>What kind of project is this?</legend>
         <div class="choice-grid">
@@ -358,7 +358,7 @@
       </fieldset>
     </section>
 
-    <section tabindex="-1" aria-label="Project details" hidden class="form-step" data-step="2" data-hint="Project details">
+    <section tabindex="-1" aria-describedby="stepLabel" aria-label="Project details" hidden class="form-step" data-step="2" data-hint="Project details">
       <label>What would you like to change? <span class="optional">(optional)</span>
         <textarea name="details" rows="5" maxlength="3000" placeholder="Example: We want to replace an older tub surround with a walk-in tiled shower and add a niche."></textarea>
       </label>
@@ -366,7 +366,7 @@
       <p class="field-help">Photos are optional and are not collected by this form. You can discuss sharing room or project photos with Charles when you connect.</p>
     </section>
 
-    <section tabindex="-1" aria-label="Location and timing" hidden class="form-step" data-step="3" data-hint="Location & timing">
+    <section tabindex="-1" aria-describedby="stepLabel" aria-label="Location and timing" hidden class="form-step" data-step="3" data-hint="Location & timing">
       <div class="two-col">
         <label>ZIP code or city
           <input name="location" maxlength="120" required placeholder="Example: 80015">
@@ -387,7 +387,7 @@
       </label>
     </section>
 
-    <section tabindex="-1" aria-label="Contact details" hidden class="form-step" data-step="4" data-hint="How to reach you">
+    <section tabindex="-1" aria-describedby="stepLabel" aria-label="Contact details" hidden class="form-step" data-step="4" data-hint="How to reach you">
       <div class="two-col">
         <label>Your name<input name="name" autocomplete="name" maxlength="100" required></label>
         <label>Phone number <span class="optional" id="phoneRequirement">(required for text or call)</span><input name="phone" type="tel" autocomplete="tel" maxlength="30" required></label>
@@ -409,8 +409,8 @@
       <p class="privacy-note">When online requests are enabled, your project and contact details will be sent through Formspree to CM Tile &amp; Stone to respond to this request. No mailing-list signup is bundled into the form. Please do not include sensitive personal information.</p>
     </section>
 
-    <section tabindex="-1" aria-label="Request confirmation" hidden class="form-step confirmation" data-step="5" data-hint="Done">
-      <span class="confirmation-mark">✓</span>
+    <section tabindex="-1" aria-describedby="stepLabel" aria-label="Request confirmation" hidden class="form-step confirmation" data-step="5" data-hint="Done">
+      <span class="confirmation-mark" aria-hidden="true">✓</span>
       <h3>That is enough to start.</h3>
       <p>Your request was accepted by the form service for CM Tile &amp; Stone. We’ll use your preferred contact method to discuss the project. This does not book an appointment.</p>
       <div class="confirmation-actions"><button type="button" class="btn primary" id="doneEstimate">Close</button><button type="button" class="btn secondary" id="newEstimate">Start another request</button></div>

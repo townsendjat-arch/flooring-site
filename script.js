@@ -52,14 +52,50 @@ function updateContactRequirements() {
   document.getElementById("phoneRequirement").textContent = emailPreferred ? "(optional)" : "(required for text or call)";
 }
 
+const validationErrors = new Map();
+const fieldNames = { projectType: "Project type", details: "Project details", location: "ZIP code or city", timing: "Project timing", spaceNote: "Space details", name: "Your name", phone: "Phone number", email: "Email", contactPreference: "Contact preference" };
+for (const input of form.querySelectorAll(".form-step input, .form-step select, .form-step textarea")) {
+  if (validationErrors.has(input.name)) continue;
+  const message = document.createElement("span");
+  message.id = `fieldError-${input.name}`;
+  message.className = "field-error";
+  message.hidden = true;
+  // One persistent explanation per group or field, in the same visual location.
+  if (input.type === "radio") {
+    input.closest("fieldset").append(message);
+  } else {
+    const label = input.closest("label");
+    const wrapper = document.createElement("div");
+    wrapper.className = "form-field";
+    label.replaceWith(wrapper);
+    wrapper.append(label, message);
+  }
+  validationErrors.set(input.name, message);
+}
+
+function clearValidation(input) {
+  const controls = input.type === "radio"
+    ? [...form.querySelectorAll('input[type="radio"]')].filter(control => control.name === input.name)
+    : [input];
+  const message = validationErrors.get(input.name);
+  for (const control of controls) {
+    control.setCustomValidity("");
+    control.removeAttribute("aria-invalid");
+    const ids = (control.getAttribute("aria-describedby") || "").split(" ").filter(id => id && id !== message?.id);
+    if (ids.length) control.setAttribute("aria-describedby", ids.join(" "));
+    else control.removeAttribute("aria-describedby");
+  }
+  if (message) { message.textContent = ""; message.hidden = true; }
+}
+
 function validateStep(number) {
   updateContactRequirements();
   const step = steps.find(step => Number(step.dataset.step) === number);
   const controls = [...step.querySelectorAll("input, select, textarea")];
+  controls.forEach(clearValidation);
   for (const input of controls) {
-    input.setCustomValidity("");
     if (input.type !== "radio" && input.required && !input.value.trim()) {
-      input.setCustomValidity("Please fill in this field.");
+      input.setCustomValidity(`Please ${input.tagName === "SELECT" ? "choose" : "enter"} ${fieldNames[input.name].toLowerCase()}.`);
     }
     if (input.name === "phone" && input.value.trim()) {
       const digits = input.value.replace(/\D/g, "");
@@ -67,8 +103,13 @@ function validateStep(number) {
         input.setCustomValidity("Enter a phone number with 10 to 15 digits.");
       }
     }
-    // Validate optional controls too, especially a supplied email address.
-    input.setAttribute("aria-invalid", String(!input.checkValidity()));
+    if (!input.checkValidity()) {
+      input.setAttribute("aria-invalid", "true");
+      const message = validationErrors.get(input.name);
+      message.textContent = input.type === "radio" ? `Please choose a ${fieldNames[input.name].toLowerCase()}.` : input.validationMessage;
+      message.hidden = false;
+      input.setAttribute("aria-describedby", [input.getAttribute("aria-describedby"), message.id].filter(Boolean).join(" "));
+    }
   }
   const invalid = controls.find(input => !input.checkValidity());
   if (!invalid) return true;
@@ -76,7 +117,6 @@ function validateStep(number) {
   renderStep();
   errorStatus.textContent = "Please check the highlighted field before continuing.";
   invalid.focus();
-  invalid.reportValidity();
   return false;
 }
 
@@ -114,16 +154,14 @@ dialog.addEventListener("close", () => opener?.focus());
 // Native Escape dismissal is retained. Closing does not cancel an in-flight send.
 
 form.addEventListener("input", event => {
-  if (event.target.setCustomValidity) event.target.setCustomValidity("");
-  event.target.removeAttribute("aria-invalid");
+  if (event.target.setCustomValidity) clearValidation(event.target);
   if (!sending) clearStatus();
 });
 form.addEventListener("change", event => {
   if (event.target.name === "contactPreference") {
     updateContactRequirements();
     for (const name of ["email", "phone"]) {
-      field(name).setCustomValidity("");
-      field(name).removeAttribute("aria-invalid");
+      clearValidation(field(name));
     }
   }
 });
@@ -191,7 +229,7 @@ backBtn.addEventListener("click", () => {
 document.getElementById("newEstimate").addEventListener("click", () => {
   if (sending || currentStep !== 5) return;
   form.reset();
-  form.querySelectorAll("[aria-invalid]").forEach(input => input.removeAttribute("aria-invalid"));
+  form.querySelectorAll(".form-step input, .form-step select, .form-step textarea").forEach(clearValidation);
   currentStep = 1;
   clearStatus();
   updateContactRequirements();

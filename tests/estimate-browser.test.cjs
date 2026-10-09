@@ -27,12 +27,13 @@ before(async () => {
 after(async()=>{await browser?.close();await new Promise(resolve=>server?.close(resolve));});
 
 async function pageFor(t, mode='unconfigured', options={}) {
-  const page = await browser.newPage({viewport:{width:1280,height:900},...options});
-  t.after(()=>page.close());
+  const context = await browser.newContext({viewport:{width:1280,height:900},...options});
+  t.after(()=>context.close());
+  const page = await context.newPage();
   const requests=[];
   // Block every non-local request. Provider behavior is simulated in-page;
   // no test payload, even fake data, can reach Formspree or another host.
-  await page.route('**/*', route=>route.request().url().startsWith(origin+'/')?route.continue():route.abort());
+  await context.route('**/*', route=>route.request().url().startsWith(origin+'/')?route.continue():route.abort());
   const endpoint = mode==='unconfigured' ? '' : mode==='invalid-config' ? 'https://example.invalid/f/mockonly' : 'https://formspree.io/f/mockonly';
   await page.route('**/estimate-config.js',route=>route.fulfill({contentType:'text/javascript',body:`export const estimateConfig = {endpoint:${JSON.stringify(endpoint)},timeoutMs:${mode==='slow'?5000:60}};`}));
   if (mode!=='unconfigured') {
@@ -352,9 +353,13 @@ test('keyboard-only choice, full modal tab cycle, focus on steps and Back',async
   await page.locator('#backBtn').click();await step(page,1);
   assert.equal(await page.locator('[data-step="1"]').evaluate(el=>el===document.activeElement),true);
   await page.locator('#nextBtn').focus();await page.keyboard.press('Tab');
-  assert.equal(await page.locator('#closeEstimate').evaluate(el=>el===document.activeElement),true,'Tab wraps to modal start');
+  // Native dialogs may visit browser chrome between the final and first control.
+  // That is allowed; focus must never enter an interactive background element.
+  if(await page.evaluate(()=>document.activeElement===document.body&&!document.hasFocus()))await page.keyboard.press('Tab');
+  assert.equal(await page.locator('#closeEstimate').evaluate(el=>el===document.activeElement),true,'Tab returns to modal start without entering the background');
   await page.keyboard.press('Shift+Tab');
-  assert.equal(await page.locator('#nextBtn').evaluate(el=>el===document.activeElement),true,'Shift+Tab wraps to modal end');
+  if(await page.evaluate(()=>document.activeElement===document.body&&!document.hasFocus()))await page.keyboard.press('Shift+Tab');
+  assert.equal(await page.locator('#nextBtn').evaluate(el=>el===document.activeElement),true,'Shift+Tab returns to modal end without entering the background');
   const snapshot=await page.locator('#estimateDialog').ariaSnapshot();
   assert.match(snapshot,/dialog "Tell us about your project/);
   assert.match(snapshot,/group "What kind of project is this/);
@@ -374,7 +379,7 @@ test('persistent specific validation is associated with the invalid control',asy
   assert.notEqual(await phone.getAttribute('aria-invalid'),'true');
 });
 
-test('mobile form controls offer 44px targets and visible focus, with no disabled motion preference ignored',async t=>{
+test('mobile form controls offer 44px targets and visible focus, respecting reduced-motion preference',async t=>{
   const page=await pageFor(t,'success',{viewport:{width:375,height:812},hasTouch:true,reducedMotion:'reduce'});
   for(const selector of ['#closeEstimate','.choice-card','#nextBtn']) {
     for(const box of await page.locator(selector).evaluateAll(els=>els.map(el=>{const r=el.getBoundingClientRect();return {width:r.width,height:r.height};}))) {
@@ -436,6 +441,8 @@ test('keyboard focus can reach every contact control inside a short viewport',as
   const visited=new Set();
   for(let i=0;i<18;i++){
     await page.keyboard.press('Tab');
+    if(await page.evaluate(()=>document.activeElement===document.body&&!document.hasFocus()))continue;
+    await page.waitForFunction(()=>{const el=document.activeElement,r=el.getBoundingClientRect(),d=document.querySelector('#estimateDialog').getBoundingClientRect();return r.top>=Math.max(0,d.top)-1&&r.bottom<=Math.min(innerHeight,d.bottom)+1;},null,{timeout:3000});
     const active=await page.evaluate(()=>{
       const el=document.activeElement,r=el.getBoundingClientRect(),d=document.querySelector('#estimateDialog').getBoundingClientRect();
       return {key:el.name||el.id,inDialog:!!el.closest('#estimateDialog'),onScreen:r.top>=Math.max(0,d.top)-1&&r.bottom<=Math.min(innerHeight,d.bottom)+1};

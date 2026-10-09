@@ -37,7 +37,7 @@ No lead data is logged or saved in browser storage by this code. Draft values st
 
 ## Local review
 
-Use Node.js 22+ and install the pinned development dependency with `npm install`. Then run `npm run check` and `npm test`. Browser tests use Playwright; install its Chromium with `npx playwright install chromium`, or use an existing compatible Chromium via `CHROMIUM_PATH=/path/to/chromium npm test`. There is no production build step or runtime package dependency. For manual local review, serve the repository over HTTP, for example `python3 -m http.server 8000`, then open localhost. ES modules are not intended to run from a `file://` URL.
+Use Node.js 22+ and install the pinned development dependencies with `npm install --ignore-scripts --no-audit --no-fund`. Then run `npm run check` and `npm test`. Browser tests use Playwright; install Chromium and WebKit with `npx playwright install --with-deps chromium webkit`. Run `BROWSER=chromium npm test` and `BROWSER=webkit npm test` separately. An existing compatible Chromium may be selected via `CHROMIUM_PATH=/path/to/chromium npm test`. Set `REVIEW_ARTIFACTS=review-artifacts/chromium` (or `webkit`) to retain local synthetic screenshots and axe summaries. There is no production build step or runtime package dependency. For manual local review, serve the repository over HTTP, for example `python3 -m http.server 8000`, then open localhost. ES modules are not intended to run from a `file://` URL.
 
 ## Prelaunch tests (after separate authorization for real test delivery)
 
@@ -84,7 +84,7 @@ The same twenty mocked browser scenarios subsequently passed on the GitHub runne
 
 ### Test-only GitHub Actions runner
 
-A narrowly scoped workflow is included for PR #1 on `review/estimate-form-safe-submit`. It runs on the standard `ubuntu-latest` runner, checks out the exact PR head SHA, requests only read access to repository contents, does not persist checkout credentials, and runs syntax checks plus the mocked unit/browser suite. No secrets, live delivery, deployment steps, artifact uploads, or caches are used. The job has a ten-minute limit and superseded runs are canceled. GitHub [documents standard public-repository runners as free](https://docs.github.com/en/billing/concepts/product-billing/github-actions). CI results must be checked for the exact published commit; inclusion of this workflow alone is not a test pass.
+A narrowly scoped workflow is included for PR #1 on `review/estimate-form-safe-submit`. It runs on the standard `ubuntu-latest` runner, checks out the exact PR head SHA, requests only read access to repository contents, does not persist checkout credentials, and runs syntax checks plus the mocked unit/browser suite. No application secrets, live delivery, deployment steps, or package-manager caches are used. The final visual-review extension runs Chromium and Playwright WebKit separately and uploads only synthetic form screenshots and axe summaries with three-day retention; no browser traces, cookies, or real lead data are collected. The job has a ten-minute limit and superseded runs are canceled. GitHub [documents standard public-repository runners as free](https://docs.github.com/en/billing/concepts/product-billing/github-actions). CI results must be checked for the exact published commit; inclusion of this workflow alone is not a test pass.
 
 ### Before launch
 
@@ -93,3 +93,7 @@ Keep the full suite green on the exact release candidate and visually inspect de
 ### Publication guardrails rechecked
 
 Before this same-branch update, `main` remained at `3a845667aa1acace923ce200b3b6f3544ec20e0e`; the PR remained draft at its prior head. The pre-update repository tree had no `.github/workflows` or third-party deployment config, and all ten observed Actions runs remain the built-in Pages workflow on `main`, most recently on 2026-10-08. The existing review commit had no external status checks. Deployment settings, deployment records, and webhooks are not exposed by the connector, so this is observed evidence rather than an audit of every account integration. Only the bounded test workflow described above is added. No deployment workflow, hosting setting, live endpoint, account, purchase, merge, or deployment is included.
+
+## Final visual and accessibility review
+
+See [the focused review record](estimate-visual-accessibility-review.md) for confirmed fixes, rendered-state coverage, evidence limits, and the owner’s real-device checklist. The current exact-head CI result and evidence links are recorded in PR #1.
