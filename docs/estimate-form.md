@@ -67,18 +67,20 @@ These references describe provider features. None of those account settings has 
 
 ### Passed
 
+- GitHub Actions ran the full suite on the exact PR head `ac41f30e1f469c3001c18800bf25ec470d8bab1e`: **24 passed, 0 failed, 0 skipped** (20 Chromium browser scenarios and 4 mocked adapter unit tests). [Successful run and detailed logs](https://github.com/townsendjat-arch/flooring-site/actions/runs/37980098510/job/113988121120). The test-only workflow reruns on later updates; check the latest PR check for the final head.
+- Browser assertions passed at 1280×900 and 375×812, including the notice being fully in view before input and after a scrolled close/reopen, configured/invalid endpoint behavior, and the existing call/text URLs. Keyboard, validation, duplicate submissions, error recovery, and confirmation checks also passed.
 - `npm run check`: syntax checks for all three production JavaScript modules.
 - `node --check tests/estimate-browser.test.cjs`: browser-test syntax.
 - Four mocked adapter unit tests: destination restrictions; explicit acceptance and transport settings; rejected, malformed, and ambiguous responses; network failures and timeouts.
 - `git diff --check` and static inspection of the conditional notice, preserved contact URLs, and unchanged empty production endpoint.
 
-### Local browser execution blocked, not passed
+### Earlier local browser blocker, resolved by the CI runner
 
 The current command was `CHROMIUM_PATH=/usr/bin/chromium npm test`. The aggregate runner returned 4 passed and 20 failed. All 20 browser entries failed in the shared browser-startup hook, before any browser scenario executed; these are infrastructure errors, not observed application assertion failures or browser passes. Chromium aborted at `chrome/browser/process_singleton_posix.cc:297`: `socket() failed: Operation not permitted (1)`. It also reported a read-only Crash Reports settings path. The earlier permitted execution retry hit the same socket restriction.
 
 The supported cloud browser cannot reach the isolated local HTTP server. Its local-file navigation is explicitly rejected (only HTTP/HTTPS navigation is supported), and its supported automation API has no request interception, initialization script injection, or writable page evaluation for this suite's fake transport and network guards. No supported remote Playwright execution bridge is exposed. No public preview or deployment was created to work around these limits.
 
-Twenty mocked browser scenarios are ready to run in a suitable executor. They cover desktop/mobile notice visibility before input, valid and invalid configuration, existing call/text links, Tab/Shift+Tab and Enter/Escape, all project/open buttons, required and optional validation, whitespace, repeated submissions, close/reopen, draft preservation, provider rejection and retry, rate limiting, network/timeout/ambiguous/server errors, confirmation/reset, and mobile overflow/recovery. Every outside request is blocked; provider outcomes are simulated in-page with fictional data.
+The same twenty mocked browser scenarios subsequently passed on the GitHub runner. They cover desktop/mobile notice visibility before input, valid and invalid configuration, existing call/text links, Tab/Shift+Tab and Enter/Escape, all project/open buttons, required and optional validation, whitespace, repeated submissions, close/reopen, draft preservation, provider rejection and retry, rate limiting, network/timeout/ambiguous/server errors, confirmation/reset, and mobile overflow/recovery. Every outside request is blocked; provider outcomes are simulated in-page with fictional data. No real form delivery was attempted.
 
 ### Test-only GitHub Actions runner
 
@@ -86,7 +88,7 @@ A narrowly scoped workflow is included for PR #1 on `review/estimate-form-safe-s
 
 ### Before launch
 
-Run the browser suite with Chromium and the HTTP server in the same supported executor, fix any assertion failures, and visually inspect desktop/mobile layouts. Actual screen-reader behavior, Safari/iOS, Android devices, provider-account protections, recipient-mailbox delivery, and real submissions remain unverified. Complete the owner/provider checklist above, then obtain separate merge/deploy approval. Passing a mocked test is not evidence of real delivery.
+Keep the full suite green on the exact release candidate and visually inspect desktop/mobile layouts. Actual screen-reader behavior, Safari/iOS, Android devices, provider-account protections, recipient-mailbox delivery, and real submissions remain unverified. Complete the owner/provider checklist above, then obtain separate merge/deploy approval. Passing a mocked test is not evidence of real delivery.
 
 ### Publication guardrails rechecked
 

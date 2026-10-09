@@ -27,6 +27,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
+          package-manager-cache: false
       - name: Install pinned test dependency without lifecycle scripts
         run: npm install --ignore-scripts --no-audit --no-fund
       - name: Install Chromium and its system dependencies
