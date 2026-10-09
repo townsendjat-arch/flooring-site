@@ -12,7 +12,7 @@
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="theme-color" content="#071e35">
-  <link rel="stylesheet" href="styles.css?v=20261008-branding">
+  <link rel="stylesheet" href="styles.css?v=20261009-estimate-form">
 </head>
 <body>
 <header class="site-header">
@@ -326,21 +326,23 @@
   </div>
 </footer>
 
-<dialog id="estimateDialog">
-  <form method="dialog" class="estimate-shell" id="estimateForm">
+<dialog id="estimateDialog" aria-labelledby="estimateTitle" aria-describedby="estimateIntro">
+  <form method="dialog" class="estimate-shell" id="estimateForm" novalidate>
     <div class="dialog-top">
       <div>
         <p class="eyebrow">FREE ESTIMATE</p>
-        <h2>Tell us about your project.</h2>
-        <p class="form-intro">About two minutes. Start with what you know — we can figure out the technical details together.</p>
+        <h2 id="estimateTitle">Tell us about your project.</h2>
+        <p class="form-intro" id="estimateIntro">About two minutes. Start with what you know — we can figure out the technical details together.</p>
       </div>
-      <button class="close" value="cancel" aria-label="Close">×</button>
+      <button type="button" class="close" id="closeEstimate" aria-label="Close estimate form">×</button>
     </div>
+
+    <p id="formAvailability" class="form-availability" tabindex="-1">Online requests are not available yet. Please <a href="tel:+13033568421">call (303) 356-8421</a> or <a href="sms:+13033568421">text Charles</a> for an estimate.</p>
 
     <div class="form-progress-copy"><span id="stepLabel">Step 1 of 4</span><span id="stepHint">Project type</span></div>
     <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
 
-    <section class="form-step active" data-step="1" data-hint="Project type">
+    <section tabindex="-1" aria-describedby="stepLabel" aria-label="Project type" class="form-step active" data-step="1" data-hint="Project type">
       <fieldset class="choice-fieldset">
         <legend>What kind of project is this?</legend>
         <div class="choice-grid">
@@ -356,21 +358,18 @@
       </fieldset>
     </section>
 
-    <section class="form-step" data-step="2" data-hint="Project details">
-      <label>What would you like to change?
-        <textarea name="details" rows="5" placeholder="Example: We want to replace an older tub surround with a walk-in tiled shower and add a niche."></textarea>
+    <section tabindex="-1" aria-describedby="stepLabel" aria-label="Project details" hidden class="form-step" data-step="2" data-hint="Project details">
+      <label>What would you like to change? <span class="optional">(optional)</span>
+        <textarea name="details" rows="5" maxlength="3000" placeholder="Example: We want to replace an older tub surround with a walk-in tiled shower and add a niche."></textarea>
       </label>
 
-      <label>Project photos <span class="optional">(optional for now)</span>
-        <input type="file" name="photos" accept="image/*" multiple>
-        <small class="field-help">Photos of the room, problem area, or inspiration help make the first conversation more useful. Photo delivery will be connected before launch.</small>
-      </label>
+      <p class="field-help">Photos are optional and are not collected by this form. You can discuss sharing room or project photos with Charles when you connect.</p>
     </section>
 
-    <section class="form-step" data-step="3" data-hint="Location & timing">
+    <section tabindex="-1" aria-describedby="stepLabel" aria-label="Location and timing" hidden class="form-step" data-step="3" data-hint="Location & timing">
       <div class="two-col">
         <label>ZIP code or city
-          <input name="location" required placeholder="Example: 80015">
+          <input name="location" maxlength="120" required placeholder="Example: 80015">
         </label>
         <label>Project timing
           <select name="timing" required>
@@ -384,46 +383,52 @@
       </div>
 
       <label>Anything we should know about the space? <span class="optional">(optional)</span>
-        <input name="spaceNote" placeholder="Example: second-floor bathroom, occupied home, existing shower leak">
+        <input name="spaceNote" maxlength="500" placeholder="Example: second-floor bathroom, occupied home, existing shower leak">
       </label>
     </section>
 
-    <section class="form-step" data-step="4" data-hint="How to reach you">
+    <section tabindex="-1" aria-describedby="stepLabel" aria-label="Contact details" hidden class="form-step" data-step="4" data-hint="How to reach you">
       <div class="two-col">
-        <label>Your name<input name="name" autocomplete="name" required></label>
-        <label>Phone number<input name="phone" type="tel" autocomplete="tel" required></label>
+        <label>Your name<input name="name" autocomplete="name" maxlength="100" required></label>
+        <label>Phone number <span class="optional" id="phoneRequirement">(required for text or call)</span><input name="phone" type="tel" autocomplete="tel" maxlength="30" required></label>
       </div>
 
-      <label>Email <span class="optional">(optional)</span>
-        <input name="email" type="email" autocomplete="email">
+      <label>Email <span class="optional" id="emailRequirement">(optional)</span>
+        <input name="email" type="email" autocomplete="email" maxlength="254">
       </label>
 
       <fieldset class="choice-fieldset compact">
         <legend>Best way to respond</legend>
         <div class="contact-choice-row">
-          <label><input type="radio" name="contactPreference" value="Text" checked> Text</label>
+          <label><input type="radio" name="contactPreference" value="Text" required checked> Text</label>
           <label><input type="radio" name="contactPreference" value="Phone call"> Phone call</label>
           <label><input type="radio" name="contactPreference" value="Email"> Email</label>
         </div>
       </fieldset>
 
-      <p class="privacy-note">Your information is only for responding to this project request. No mailing-list signup is bundled into the form.</p>
+      <p class="privacy-note">When online requests are enabled, your project and contact details will be sent through Formspree to CM Tile &amp; Stone to respond to this request. No mailing-list signup is bundled into the form. Please do not include sensitive personal information.</p>
     </section>
 
-    <section class="form-step confirmation" data-step="5" data-hint="Done">
-      <span class="confirmation-mark">✓</span>
+    <section tabindex="-1" aria-describedby="stepLabel" aria-label="Request confirmation" hidden class="form-step confirmation" data-step="5" data-hint="Done">
+      <span class="confirmation-mark" aria-hidden="true">✓</span>
       <h3>That is enough to start.</h3>
-      <p>Prototype preview: the form flow is complete, but submissions are not connected yet.</p>
+      <p>Your request was accepted by the form service for CM Tile &amp; Stone. We’ll use your preferred contact method to discuss the project. This does not book an appointment.</p>
+      <div class="confirmation-actions"><button type="button" class="btn primary" id="doneEstimate">Close</button><button type="button" class="btn secondary" id="newEstimate">Start another request</button></div>
     </section>
 
+    <div class="form-honeypot" aria-hidden="true"><label>Leave this field empty<input name="_gotcha" tabindex="-1" autocomplete="off"></label></div>
+    <p id="formStatus" class="form-status" role="status" aria-live="polite" aria-atomic="true"></p>
+    <p id="formError" class="form-error" role="alert" aria-atomic="true" tabindex="-1"></p>
+    <p class="form-contact">Prefer to talk? <a href="tel:+13033568421">Call (303) 356-8421</a> or <a href="sms:+13033568421">text Charles</a>.</p>
     <div class="form-actions">
       <button type="button" class="btn secondary" id="backBtn">Back</button>
-      <button type="button" class="btn primary" id="nextBtn">Continue</button>
+      <button type="submit" class="btn primary" id="nextBtn" disabled>Continue</button>
     </div>
   </form>
 </dialog>
 
-<script src="script.js"></script>
+<noscript><p class="wrap">Online estimate requests need JavaScript. Please <a href="tel:+13033568421">call (303) 356-8421</a> or <a href="sms:+13033568421">text Charles</a>.</p></noscript>
+<script type="module" src="script.js?v=20261009-estimate-form"></script>
 <script>
   document.querySelectorAll("img").forEach(img => {
     img.addEventListener("error", () => img.closest(".hero-image-wrap, .story-image")?.classList.add("missing-image"));

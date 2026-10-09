@@ -220,3 +220,37 @@ footer{background:#000}
 .footer-grid{align-items:flex-start}
 a:focus-visible,button:focus-visible{outline:3px solid var(--colorado-red);outline-offset:4px}
 @media(max-width:360px){.brand-logo{width:50px;flex-basis:50px}.brand strong{font-size:.9rem}.phone-link{padding:10px 8px}.brand{gap:8px}}
+
+
+/* Estimate flow states; existing page layout and brand styling are unchanged. */
+[hidden]{display:none!important}
+.form-step:focus{outline:none}
+.form-availability{margin-top:20px;padding:14px;border:1px solid var(--warm);background:#fff7e8;color:var(--ink);line-height:1.5}
+.form-availability a{text-underline-offset:3px;font-weight:800}
+.form-availability:focus{outline:2px solid var(--warm);outline-offset:2px}
+.form-status:not(:empty),.form-error:not(:empty){margin-top:18px;padding:12px;border:1px solid var(--line)}
+.form-error:not(:empty){border-color:#a21f27;color:#80171e;background:#fff5f5}
+.form-error:focus{outline:2px solid var(--colorado-red);outline-offset:2px}
+[aria-invalid="true"]{border-color:#a21f27}
+button:disabled{cursor:wait;opacity:.65}
+.form-contact{font-size:.875rem;color:var(--muted);margin-top:18px}
+.form-contact a{text-underline-offset:3px}
+.form-honeypot{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.confirmation-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:22px}
+
+/* Review fixes: preserve the yellow brand while making field boundaries/focus clear. */
+#estimateDialog input,#estimateDialog select,#estimateDialog textarea{border-color:#82796f}
+#estimateDialog input:focus,#estimateDialog select:focus,#estimateDialog textarea:focus,.form-availability:focus{outline:3px solid var(--ink);outline-offset:2px}
+#estimateDialog [aria-invalid="true"]{border-color:#a21f27}
+#estimateDialog .dialog-top>div,#estimateDialog label,#estimateDialog fieldset{min-width:0}
+#estimateDialog .close{flex:0 0 44px;min-width:44px;min-height:44px;align-self:flex-start;line-height:1}
+#estimateDialog .form-actions{flex-wrap:wrap}
+#estimateDialog .choice-card input{flex-shrink:0}
+.field-error{display:block;margin-top:8px;font-weight:600;color:#80171e;line-height:1.5}
+@media(max-width:400px){#estimateDialog .estimate-shell{padding:18px}#estimateDialog .dialog-top{gap:12px}}
+@media(prefers-reduced-motion:reduce){#estimateDialog .progress span{transition:none}}
+#estimateDialog .form-field{min-width:0;margin-bottom:18px}
+#estimateDialog .form-field>label{margin-bottom:0}
+#estimateDialog .two-col,#estimateDialog .choice-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,16rem),1fr))}
+#estimateDialog .confirmation-mark{color:var(--ink)}
+#estimateDialog input::placeholder,#estimateDialog textarea::placeholder{color:var(--muted);opacity:1}

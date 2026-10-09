@@ -29,3 +29,8 @@ This prototype uses only HTML, CSS, and JavaScript. No backend, analytics, or pr
 - Connect the estimate flow to an email/CRM/form service
 - Deploy
 - Add Google Analytics and Google Search Console
+
+
+## Proposed estimate-form integration
+
+The estimate flow includes an unconfigured, fail-closed Formspree adapter. No live submission destination is set. See [setup and prelaunch checklist](docs/estimate-form.md) for owner decisions, external server/spam controls, local checks, and authorization gates. Do not merge or deploy this proposal without approval.
