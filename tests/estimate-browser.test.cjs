@@ -281,12 +281,28 @@ async function captureForm(page, name) {
   }
 }
 async function scanForm(page, name) {
-  const results=await new AxeBuilder({page}).include('#estimateDialog')
-    .withTags(['wcag2a','wcag2aa','wcag21a','wcag21aa','wcag22aa']).analyze();
-  const summary={state:name,engine:engineName,violations:results.violations.map(v=>({id:v.id,impact:v.impact,help:v.help,nodes:v.nodes.map(n=>({target:n.target,summary:n.failureSummary}))})),incomplete:results.incomplete.map(v=>({id:v.id,targets:v.nodes.map(n=>n.target)}))};
+  const dialog=page.locator('#estimateDialog');
+  const position=await dialog.evaluate(el=>({top:el.scrollTop,height:el.clientHeight,total:el.scrollHeight}));
+  const results=[];
+  for(let y=0;y<position.total;y+=Math.max(1,Math.floor(position.height*.8))) {
+    await dialog.evaluate((el,y)=>el.scrollTop=y,y);
+    results.push(await new AxeBuilder({page}).include('#estimateDialog')
+      .withTags(['wcag2a','wcag2aa','wcag21a','wcag21aa','wcag22aa']).analyze());
+    if(y+position.height>=position.total)break;
+  }
+  await dialog.evaluate((el,y)=>el.scrollTop=y,position.top);
+  const key=(rule,node)=>rule.id+JSON.stringify(node.target);
+  const passed=new Set(results.flatMap(r=>r.passes.flatMap(rule=>rule.nodes.map(node=>key(rule,node)))));
+  const violations=new Map();const incomplete=new Map();
+  for(const result of results) {
+    for(const rule of result.violations)for(const node of rule.nodes)violations.set(key(rule,node),{id:rule.id,impact:rule.impact,help:rule.help,target:node.target,summary:node.failureSummary});
+    for(const rule of result.incomplete)for(const node of rule.nodes)if(!passed.has(key(rule,node)))incomplete.set(key(rule,node),{id:rule.id,target:node.target,summary:node.failureSummary});
+  }
+  const summary={state:name,engine:engineName,scrollPositions:results.length,violations:[...violations.values()],incomplete:[...incomplete.values()]};
   if(reviewRoot){await mkdir(reviewRoot,{recursive:true});await writeFile(path.join(reviewRoot,`${name}-axe.json`),JSON.stringify(summary,null,2));}
   return summary;
 }
+
 async function assertReflow(page) {
   assert.equal(await page.locator('#estimateDialog').evaluate(el=>el.scrollWidth<=el.clientWidth+1),true,'Dialog must not scroll horizontally');
   const outside=await page.locator('#estimateForm').evaluate(form=>{
@@ -352,14 +368,21 @@ test('keyboard-only choice, full modal tab cycle, focus on steps and Back',async
   assert.equal(await page.locator('[name=details]').evaluate(el=>el===document.activeElement),true);
   await page.locator('#backBtn').click();await step(page,1);
   assert.equal(await page.locator('[data-step="1"]').evaluate(el=>el===document.activeElement),true);
-  await page.locator('#nextBtn').focus();await page.keyboard.press('Tab');
-  // Native dialogs may visit browser chrome between the final and first control.
-  // That is allowed; focus must never enter an interactive background element.
-  if(await page.evaluate(()=>document.activeElement===document.body&&!document.hasFocus()))await page.keyboard.press('Tab');
-  assert.equal(await page.locator('#closeEstimate').evaluate(el=>el===document.activeElement),true,'Tab returns to modal start without entering the background');
-  await page.keyboard.press('Shift+Tab');
-  if(await page.evaluate(()=>document.activeElement===document.body&&!document.hasFocus()))await page.keyboard.press('Shift+Tab');
-  assert.equal(await page.locator('#nextBtn').evaluate(el=>el===document.activeElement),true,'Shift+Tab returns to modal end without entering the background');
+  // Native dialogs can visit browser chrome at a cycle boundary. Check that
+  // repeated forward/reverse traversal reaches modal controls, never page links.
+  const visits=[];
+  for(const direction of ['Tab','Shift+Tab']) {
+    await page.locator('#nextBtn').focus();
+    const seen=new Set();
+    for(let i=0;i<12;i++) {
+      await page.keyboard.press(direction);
+      const active=await page.evaluate(()=>({id:document.activeElement.id,name:document.activeElement.name,tag:document.activeElement.tagName,inDialog:!!document.activeElement.closest('#estimateDialog'),hasFocus:document.hasFocus()}));
+      visits.push(active);
+      assert.ok(active.inDialog||(active.tag==='BODY'&&!active.hasFocus),JSON.stringify(active));
+      seen.add(active.id);
+    }
+    assert.ok(seen.has('closeEstimate')&&seen.has('nextBtn'),JSON.stringify(visits));
+  }
   const snapshot=await page.locator('#estimateDialog').ariaSnapshot();
   assert.match(snapshot,/dialog "Tell us about your project/);
   assert.match(snapshot,/group "What kind of project is this/);

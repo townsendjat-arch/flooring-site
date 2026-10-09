@@ -4,10 +4,11 @@ Date: 2026-10-09. Scope: the existing estimate dialog in draft PR #1, on `review
 
 ## Changes and why
 
-- Darkened form field boundaries and focus indicators using existing neutral/ink colors. Original boundary and focus colors were approximately 1.44:1 and 1.45:1 against white. The new computed styles have regression assertions for at least 3:1 contrast.
+- Darkened form field boundaries and focus indicators using existing neutral/ink colors. Original boundary and focus colors were approximately 1.44:1 and 1.45:1 against white. The new borders measure 4.27:1 against white and ink focus outlines measure 16.85:1 against white, with regression assertions for at least 3:1.
 - Added persistent, specific validation explanations next to each invalid field/group, associated through `aria-describedby`. Removed reliance on transient native validation popups. Input focus still moves to the first invalid control; provider failures retain a focused alert and the draft.
 - Clear invalid state and its explanation for the whole radio group when a choice changes. Previously, choosing an option after an empty Continue left the other valid group members falsely marked invalid.
-- Give Close a 44×44 CSS-pixel target; keep narrow form padding and flexible actions/heading so the form can reflow. Preserve existing typography, yellow accents, site sections, imagery, contact URLs, and form choices.
+- Correct a Playwright WebKit short-viewport focus-scroll failure while retaining native Tab/Escape behavior.
+- Give Close a 44×44 CSS-pixel target; keep narrow form padding and flexible actions/heading so the form can reflow. Let field/choice columns respond to enlarged text instead of remaining tightly paired. Preserve existing typography, yellow accents, site sections, imagery, contact URLs, and form choices.
 - Expose step-count descriptions when the step section receives focus, hide the decorative confirmation check mark from assistive technology, and honor reduced motion for the progress animation.
 
 ## Automated and rendered review method
@@ -21,7 +22,7 @@ Rendered state captures and axe WCAG A/AA-tagged scans cover:
 - 1280×900 desktop; 375×812 touch-capable viewport; 320×640 narrow reflow; 812×375 landscape; 640×900 with the root font enlarged to 200%.
 - All four input steps, invalid phone feedback, provider rejection, successful mocked confirmation, and the early unconfigured notice.
 - Overlapping vertical screenshot slices retain the actual scrollable dialog layout. These are visual inspection evidence, not a baseline pixel-diff guarantee. Root-font enlargement is a text-resize stress test; native browser zoom was not performed. A 320-CSS-pixel viewport tests reflow but does not certify browser zoom.
-- Axe scans are confined to the requested estimate form. No rule exclusions are applied within the selected WCAG A/AA tags. Automated scans cannot establish full WCAG conformance or human screen-reader usability. Incomplete axe checks, if present, are retained for review.
+- Axe scans are confined to the requested estimate form. No rule exclusions are applied within the selected WCAG A/AA tags. Automated scans cannot establish full WCAG conformance or human screen-reader usability. Axe scans run at overlapping scroll positions; a node still unresolved after those passes is retained as incomplete for review.
 
 Additional assertions cover keyboard-only radio selection; Tab/Shift+Tab cycles; hidden-step accessibility semantics; active-step, Back, confirmation, validation, and opener focus; focused-control visibility in short viewports; persistent field explanations and corrections; 44px principal targets; focus contrast; reduced-motion progress; no-JavaScript direct-contact fallback; duplicate submissions; close/reopen; preservation/reset; and configured/unconfigured/error transport behavior.
 

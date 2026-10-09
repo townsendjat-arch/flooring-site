@@ -251,3 +251,5 @@ button:disabled{cursor:wait;opacity:.65}
 @media(prefers-reduced-motion:reduce){#estimateDialog .progress span{transition:none}}
 #estimateDialog .form-field{min-width:0;margin-bottom:18px}
 #estimateDialog .form-field>label{margin-bottom:0}
+#estimateDialog .two-col,#estimateDialog .choice-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,16rem),1fr))}
+#estimateDialog .confirmation-mark{color:var(--ink)}

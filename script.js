@@ -153,6 +153,23 @@ document.getElementById("doneEstimate").addEventListener("click", () => dialog.c
 dialog.addEventListener("close", () => opener?.focus());
 // Native Escape dismissal is retained. Closing does not cancel an in-flight send.
 
+// WebKit can leave a keyboard-focused control outside a short dialog viewport.
+// Correct only the dialog's scroll position; retain native Tab/Escape behavior.
+dialog.addEventListener("focusin", event => {
+  const target = event.target;
+  if (!target.matches("input, select, textarea, button, a, .form-error")) return;
+  requestAnimationFrame(() => {
+    if (!dialog.open || document.activeElement !== target) return;
+    const control = target.getBoundingClientRect();
+    const bounds = dialog.getBoundingClientRect();
+    const top = Math.max(0, bounds.top) + 6;
+    const bottom = Math.min(window.innerHeight, bounds.bottom) - 6;
+    if (control.height > bottom - top) return;
+    if (control.top < top) dialog.scrollTop -= top - control.top;
+    else if (control.bottom > bottom) dialog.scrollTop += control.bottom - bottom;
+  });
+});
+
 form.addEventListener("input", event => {
   if (event.target.setCustomValidity) clearValidation(event.target);
   if (!sending) clearStatus();
