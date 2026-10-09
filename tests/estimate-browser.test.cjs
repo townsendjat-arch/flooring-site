@@ -22,7 +22,7 @@ before(async () => {
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
   origin = `http://127.0.0.1:${server.address().port}`;
   browser = await engine.launch({headless:true, ...(engineName==='chromium' && process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{}), ...(engineName==='chromium'?{args:['--no-sandbox']}:{})});
-  console.log(`Browser evidence: ${engineName} ${browser.version()}; Playwright ${require('playwright/package.json').version()}`);
+  console.log(`Browser evidence: ${engineName} ${browser.version()}; Playwright ${require('playwright/package.json').version}`);
 });
 after(async()=>{await browser?.close();await new Promise(resolve=>server?.close(resolve));});
 
@@ -386,4 +386,72 @@ test('mobile form controls offer 44px targets and visible focus, with no disable
   const focus=await page.locator('[name=details]').evaluate(el=>{const s=getComputedStyle(el);return {style:s.outlineStyle,width:s.outlineWidth,color:s.outlineColor};});
   assert.notEqual(focus.style,'none');assert.ok(parseFloat(focus.width)>=2);
   assert.equal(await page.locator('#progressBar').evaluate(el=>getComputedStyle(el).transitionDuration),'0s');
+});
+
+test('selecting a radio clears stale invalid state for the whole choice group',async t=>{
+  const page=await pageFor(t,'success');
+  await page.locator('#nextBtn').click();
+  assert.equal(await page.locator('[name=projectType][aria-invalid=true]').count(),8);
+  await page.keyboard.press('ArrowDown');
+  assert.equal(await page.locator('[name=projectType]:checked').count(),1);
+  assert.equal(await page.locator('[name=projectType][aria-invalid=true]').count(),0);
+  assert.equal(await page.locator('#fieldError-projectType').isHidden(),true);
+});
+
+test('location and timing errors persist beside fields and clear on correction',async t=>{
+  const page=await pageFor(t,'success');
+  await page.locator('[name=projectType]').first().check();
+  await page.locator('#nextBtn').click();await page.locator('#nextBtn').click();
+  await page.locator('#nextBtn').click();await step(page,3);
+  assert.equal(await page.locator('[name=location]').evaluate(el=>el===document.activeElement),true);
+  assert.equal(await page.locator('#fieldError-location').isVisible(),true);
+  assert.equal(await page.locator('#fieldError-timing').isVisible(),true);
+  await page.locator('[name=location]').fill('80015');
+  assert.equal(await page.locator('#fieldError-location').isHidden(),true);
+  assert.equal(await page.locator('#fieldError-timing').isVisible(),true);
+  await page.locator('#nextBtn').click();
+  assert.equal(await page.locator('[name=timing]').evaluate(el=>el===document.activeElement),true);
+  await page.locator('[name=timing]').selectOption({label:'Just researching'});
+  await page.locator('#nextBtn').click();await step(page,4);
+});
+
+test('focused field and notice boundaries contrast at least 3:1 with adjacent backgrounds',async t=>{
+  const page=await pageFor(t);
+  const contrast=async(selector,property,background)=>page.locator(selector).evaluate((el,{property,background})=>{
+    const rgb=s=>s.match(/[\d.]+/g).slice(0,3).map(Number);
+    const light=rgb=>rgb.map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;}).reduce((s,v,i)=>s+v*[.2126,.7152,.0722][i],0);
+    const a=light(rgb(getComputedStyle(el)[property])),b=light(rgb(background));
+    return (Math.max(a,b)+.05)/(Math.min(a,b)+.05);
+  },{property,background});
+  assert.ok(await contrast('#formAvailability','outlineColor','rgb(255, 247, 232)')>=3);
+  await page.locator('[name=projectType]').first().check();await page.locator('#nextBtn').click();
+  await page.keyboard.press('Tab');
+  assert.ok(await contrast('[name=details]','outlineColor','rgb(255, 255, 255)')>=3);
+  assert.ok(await contrast('[name=details]','borderTopColor','rgb(255, 255, 255)')>=3);
+});
+
+test('keyboard focus can reach every contact control inside a short viewport',async t=>{
+  const page=await pageFor(t,'success',{viewport:{width:812,height:375}});await reachContact(page);
+  await page.locator('#closeEstimate').focus();
+  const visited=new Set();
+  for(let i=0;i<18;i++){
+    await page.keyboard.press('Tab');
+    const active=await page.evaluate(()=>{
+      const el=document.activeElement,r=el.getBoundingClientRect(),d=document.querySelector('#estimateDialog').getBoundingClientRect();
+      return {key:el.name||el.id,inDialog:!!el.closest('#estimateDialog'),onScreen:r.top>=Math.max(0,d.top)-1&&r.bottom<=Math.min(innerHeight,d.bottom)+1};
+    });
+    assert.equal(active.inDialog,true,'Keyboard focus remains in the modal');
+    assert.equal(active.onScreen,true,`${active.key} must scroll into view`);
+    visited.add(active.key);
+  }
+  for(const key of ['name','phone','email','contactPreference','backBtn','nextBtn','closeEstimate'])assert.ok(visited.has(key),key);
+});
+
+test('no-JavaScript fallback keeps direct contact available without an enabled send button',async t=>{
+  const page=await browser.newPage({javaScriptEnabled:false});t.after(()=>page.close());
+  await page.route('**/*',r=>r.request().url().startsWith(origin+'/')?r.continue():r.abort());
+  await page.goto(origin);
+  assert.equal(await page.locator('noscript a[href="tel:+13033568421"]').isVisible(),true);
+  assert.equal(await page.locator('noscript a[href="sms:+13033568421"]').isVisible(),true);
+  assert.equal(await page.locator('#nextBtn').isDisabled(),true);
 });
