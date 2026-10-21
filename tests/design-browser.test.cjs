@@ -42,6 +42,17 @@ async function pageFor(t, options = {}, baselineCss = null) {
   // Load lazy photography before evaluating layout or taking the full-page image.
   await page.locator('img').evaluateAll(images => images.forEach(image => image.loading = 'eager'));
   await page.waitForFunction(() => [...document.images].every(image => image.complete && image.naturalWidth > 0));
+  await page.locator('img').evaluateAll(async images => {
+    await Promise.all(images.map(image => image.decode()));
+    // Exercise actual paint for offscreen async-decoded gallery photos before
+    // full-page capture; complete/naturalWidth alone do not guarantee pixels.
+    for (const image of images) {
+      image.scrollIntoView({ block: 'center', behavior: 'instant' });
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    }
+    scrollTo({ top: 0, behavior: 'instant' });
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  });
   return page;
 }
 async function save(page, name, fullPage = false) {
