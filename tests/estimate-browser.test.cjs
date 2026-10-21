@@ -451,7 +451,8 @@ test('field and focus boundaries meet 3:1 and placeholder text meets 4.5:1 contr
     const a=light(rgb(getComputedStyle(el,pseudo)[property])),b=light(rgb(background));
     return (Math.max(a,b)+.05)/(Math.min(a,b)+.05);
   },{property,background,pseudo});
-  assert.ok(await contrast('#formAvailability','outlineColor','rgb(255, 247, 232)')>=3);
+  const noticeBackground=await page.locator('#formAvailability').evaluate(el=>getComputedStyle(el).backgroundColor);
+  assert.ok(await contrast('#formAvailability','outlineColor',noticeBackground)>=3);
   await page.locator('[name=projectType]').first().check();await page.locator('#nextBtn').click();
   await page.keyboard.press('Tab');
   assert.ok(await contrast('[name=details]','outlineColor','rgb(255, 255, 255)')>=3);
