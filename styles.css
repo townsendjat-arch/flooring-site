@@ -25,10 +25,10 @@ button,input,select,textarea{font:inherit}
 .site-header{position:sticky;top:0;z-index:20;background:rgba(0,0,0,.97);backdrop-filter:blur(10px);border-bottom:1px solid #404040}
 .nav{min-height:76px;display:flex;align-items:center;gap:26px}
 .brand{display:flex;align-items:center;gap:12px;text-decoration:none;margin-right:auto;color:#fff}
-/* Preserve the supplied logo artwork/crop; monochrome treatment removes embedded gold.
-   Project photography is not filtered or changed. */
+/* Preserve the original full-color logo artwork and crop, including Colorado flag colors.
+   Logo and project photography are not filtered or changed. */
 .brand-logo{position:relative;display:block;flex:0 0 100px;width:100px;aspect-ratio:525/258;overflow:hidden;background:#000}
-.brand-logo img{position:absolute;width:214.285714%;max-width:none;height:auto;left:-7.428571%;top:-23.255814%;display:block;filter:grayscale(1)}
+.brand-logo img{position:absolute;width:214.285714%;max-width:none;height:auto;left:-7.428571%;top:-23.255814%;display:block}
 .brand strong{display:block;font-family:Georgia,"Times New Roman",serif;font-size:1.25rem;color:#fff}
 .brand small{display:block;font-size:.59rem;letter-spacing:.2em;color:#d4d4d4;margin-top:3px}
 nav{display:flex;gap:30px}

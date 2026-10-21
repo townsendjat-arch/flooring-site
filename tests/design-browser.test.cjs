@@ -106,7 +106,7 @@ for (const config of [
     const after = await geometry(page);
     await palette(page);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true, 'Homepage fits viewport');
-    assert.equal(await page.locator('.brand-logo img').first().evaluate(el => getComputedStyle(el).filter), 'grayscale(1)');
+    assert.deepEqual(await page.locator('.brand-logo img').evaluateAll(els => els.map(el => getComputedStyle(el).filter)), ['none', 'none'], 'Both logo instances retain the original full colors');
     for (const filter of await page.locator('.hero-image-wrap img,.story-image img').evaluateAll(els => els.map(el => getComputedStyle(el).filter))) assert.equal(filter, 'none');
     await save(page, `${name}-after-hero`);
     await save(page, `${name}-after-full`, true);
