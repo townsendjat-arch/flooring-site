@@ -12,6 +12,14 @@ Last verified: **2026-10-21 (UTC)**. Charles remains **Priority #1**.
 - Observed `main`: `3a845667aa1acace923ce200b3b6f3544ec20e0e`. The latest observed Pages deployment is [2026-10-08 run 37811969212](https://github.com/townsendjat-arch/flooring-site/actions/runs/37811969212), not either review package.
 - This tracking addition is documentation-only. Its new head is separate from the code-tested commit above; use [PR commits](https://github.com/townsendjat-arch/flooring-site/pull/2/commits) and [checks](https://github.com/townsendjat-arch/flooring-site/pull/2/checks) for the exact current revision and its own CI result.
 
+## Status index
+
+- **Completed:** the development, bounded review and tracking work listed below. None of it is marked released.
+- **In Progress:** no design or feature implementation. Current documentation-revision CI status is shown in [PR checks](https://github.com/townsendjat-arch/flooring-site/pull/2/checks).
+- **Pending:** actual-device/assistive-technology/native-zoom testing (C6); post-release verification only after an authorized release (C9).
+- **Blocked:** provider controls and real notification-delivery verification (C4-C5) depend on approved setup and separately authorized synthetic tests; the endpoint remains empty.
+- **Awaiting Approval:** final form/design review (C1), processor/inbox (C2), terms/privacy/operations (C3), content signoff (C7), and exact-candidate merge/deployment (C8). Gate details below remain authoritative.
+
 ## Completed development and review evidence
 
 | Item | Development/review state | Release state | Evidence |
