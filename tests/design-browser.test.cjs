@@ -28,12 +28,13 @@ before(async () => {
   console.log(`Design evidence: ${engineName} ${browser.version()}; Playwright ${require('playwright/package.json').version}`);
 });
 after(async () => { await browser?.close(); await new Promise(resolve => server?.close(resolve)); });
-async function pageFor(t, options = {}) {
+async function pageFor(t, options = {}, baselineCss = null) {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, reducedMotion: 'reduce', ...options });
   t.after(() => context.close());
   // All network traffic outside this local test server is blocked. No leads are sent.
   await context.route('**/*', route => route.request().url().startsWith(origin + '/') ? route.continue() : route.abort());
   const page = await context.newPage(); const errors = [], posts = [];
+  if (baselineCss) await page.route('**/styles.css?*', route => route.fulfill({ contentType: 'text/css', body: baselineCss }));
   page.on('pageerror', error => errors.push(error.message));
   page.on('request', request => { if (request.method() === 'POST') posts.push(request.url()); });
   t.after(() => { assert.deepEqual(errors, []); assert.deepEqual(posts, []); });
@@ -84,8 +85,8 @@ for (const config of [
   test(`${config.name}: neutral homepage, preserved layout, photography and accessibility`, async t => {
     const { name, ...options } = config;
     const page = await pageFor(t, options);
-    const geometry = () => page.locator('main > section,.hero-image-wrap,.story-image,.project-card').evaluateAll(els => els.map(el => { const r = el.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height }; }));
-    const after = await geometry();
+    const geometry = target => target.locator('main > section,.hero-image-wrap,.story-image,.project-card').evaluateAll(els => els.map(el => { const r = el.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height }; }));
+    const after = await geometry(page);
     await palette(page);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true, 'Homepage fits viewport');
     assert.equal(await page.locator('.brand-logo img').first().evaluate(el => getComputedStyle(el).filter), 'grayscale(1)');
@@ -98,12 +99,12 @@ for (const config of [
     assert.deepEqual(summary.violations, []);
     // Exact base CSS on the unchanged page content provides before evidence and a layout guard.
     const baseCss = execFileSync('git', ['show', `${base}:styles.css`], { cwd: root, encoding: 'utf8' });
-    await page.locator('link[rel=stylesheet]').evaluate(el => el.remove());
-    await page.addStyleTag({ content: baseCss });
-    await page.evaluate(() => scrollTo(0, 0));
-    assert.deepEqual(await geometry(), after, 'Page structure, geometry and photo crops remain unchanged');
-    await save(page, `${name}-before-hero`);
-    await save(page, `${name}-before-full`, true);
+    // A fresh navigation avoids animating the old transition:all rule while
+    // hot-swapping CSS, which would sample transient card font sizes.
+    const beforePage = await pageFor(t, options, baseCss);
+    assert.deepEqual(await geometry(beforePage), after, 'Page structure, geometry and photo crops remain unchanged');
+    await save(beforePage, `${name}-before-hero`);
+    await save(beforePage, `${name}-before-full`, true);
   });
 }
 test('homepage keyboard focus, hover, active, disabled and selected states stay readable', async t => {
