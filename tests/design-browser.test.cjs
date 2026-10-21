@@ -42,22 +42,24 @@ async function pageFor(t, options = {}, baselineCss = null) {
   // Load lazy photography before evaluating layout or taking the full-page image.
   await page.locator('img').evaluateAll(images => images.forEach(image => image.loading = 'eager'));
   await page.waitForFunction(() => [...document.images].every(image => image.complete && image.naturalWidth > 0));
-  await page.locator('img').evaluateAll(async images => {
-    await Promise.all(images.map(image => image.decode()));
-    // Exercise actual paint for offscreen async-decoded gallery photos before
-    // full-page capture; complete/naturalWidth alone do not guarantee pixels.
-    for (const image of images) {
-      image.scrollIntoView({ block: 'center', behavior: 'instant' });
-      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-    }
-    scrollTo({ top: 0, behavior: 'instant' });
-    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-  });
+  await page.locator('img').evaluateAll(images => Promise.all(images.map(image => image.decode())));
   return page;
 }
 async function save(page, name, fullPage = false) {
   if (!artifacts) return;
   await mkdir(artifacts, { recursive: true });
+  if (fullPage) await page.locator('img').evaluateAll(async images => {
+    // Paint offscreen async-decoded photos only for full-page screenshots.
+    // Keep this out of page setup: scrolling images can change Chromium's
+    // sequential keyboard-navigation starting point before the first Tab.
+    const position = { left: scrollX, top: scrollY, behavior: 'instant' };
+    for (const image of images) {
+      image.scrollIntoView({ block: 'center', behavior: 'instant' });
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    }
+    scrollTo(position);
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  });
   await page.screenshot({ path: path.join(artifacts, `${name}.png`), fullPage, animations: 'disabled' });
 }
 async function palette(page) {
