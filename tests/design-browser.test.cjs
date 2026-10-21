@@ -54,12 +54,16 @@ async function save(page, name, fullPage = false) {
     // sequential keyboard-navigation starting point before the first Tab.
     const position = { left: scrollX, top: scrollY, behavior: 'instant' };
     for (const image of images) {
-      image.scrollIntoView({ block: 'center', behavior: 'instant' });
+      // Do not use image.scrollIntoView(): it can scroll the overflow-hidden
+      // logo crop itself. Scroll only the window, preserving the real crop.
+      const rect = image.getBoundingClientRect();
+      scrollTo({ top: scrollY + rect.top - innerHeight / 2, behavior: 'instant' });
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     }
     scrollTo(position);
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
   });
+  assert.deepEqual(await page.locator('.brand-logo').evaluateAll(els => els.map(el => ({ x: el.scrollLeft, y: el.scrollTop }))), [{ x: 0, y: 0 }, { x: 0, y: 0 }], 'Screenshot preparation must not scroll or alter logo crops');
   await page.screenshot({ path: path.join(artifacts, `${name}.png`), fullPage, animations: 'disabled' });
 }
 async function palette(page) {
