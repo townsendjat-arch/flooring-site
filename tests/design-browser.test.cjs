@@ -122,6 +122,16 @@ test('homepage keyboard focus, hover, active, disabled and selected states stay 
   const page = await pageFor(t);
   await page.keyboard.press('Tab');
   assert.equal(await page.locator('.site-header .brand').evaluate(el => el === document.activeElement), true);
+  // Activate every visible in-page navigation link with the keyboard.
+  for (const link of await page.locator('nav a').all()) {
+    const target = await link.getAttribute('href');
+    assert.equal(await page.locator(target).count(), 1);
+    await link.focus(); await page.keyboard.press('Enter');
+    assert.equal(new URL(page.url()).hash, target);
+    assert.equal(await page.locator(target).isVisible(), true);
+  }
+  await page.locator('.site-header .brand').focus(); await page.keyboard.press('Enter');
+  assert.equal(new URL(page.url()).hash, '#top');
   for (const selector of ['.site-header .brand','nav a','.phone-link','.hero-actions .primary','.hero-actions .secondary','.project-card','.craftsmanship .secondary','.footer-contact a']) {
     const element = page.locator(selector).first();
     await element.focus();
