@@ -29,7 +29,7 @@ before(async () => {
   console.log(`Design evidence: ${engineName} ${browser.version()}; Playwright ${require('playwright/package.json').version}`);
 });
 after(async () => { await browser?.close(); await new Promise(resolve => server?.close(resolve)); });
-async function pageFor(t, options = {}, baseline = false) {
+async function pageFor(t, options = {}, baseline = false, configFixture = null) {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, reducedMotion: 'reduce', ...options });
   t.after(() => context.close());
   // All network traffic outside this local test server is blocked. No leads are sent.
@@ -44,6 +44,9 @@ async function pageFor(t, options = {}, baseline = false) {
     return route.continue();
   });
   const page = await context.newPage(); const errors = [], posts = [];
+  if (configFixture) await page.route('**/estimate-config.js', route => route.fulfill({
+    contentType: 'text/javascript', body: `export const estimateConfig = ${JSON.stringify(configFixture)};`,
+  }));
   page.on('pageerror', error => errors.push(error.message));
   page.on('request', request => { if (request.method() === 'POST') posts.push(request.url()); });
   t.after(() => { assert.deepEqual(errors, []); assert.deepEqual(posts, []); });
@@ -181,8 +184,10 @@ test('homepage keyboard focus, hover, active, disabled and selected states stay 
   await save(page, 'desktop-disabled');
 });
 test('neutral error and unavailable states retain text, ARIA and visible boundaries', async t => {
-  const page = await pageFor(t, { viewport: { width: 375, height: 812 } });
+  // Exercise the unavailable fallback even when the real candidate is configured.
+  const page = await pageFor(t, { viewport: { width: 375, height: 812 } }, false, { endpoint: '', timeoutMs: 15000 });
   await page.locator('[data-open-estimate]').first().click(); await palette(page);
+  assert.equal(await page.locator('#formAvailability').isVisible(), true);
   assert.ok(await contrast(page, '#formAvailability', 'color') >= 4.5);
   await page.locator('#nextBtn').click();
   assert.equal(await page.locator('[name=projectType][aria-invalid=true]').count(), 8);

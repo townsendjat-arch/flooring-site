@@ -81,7 +81,7 @@ Future changes to the endpoint, CAPTCHA, provider behavior, content or code inva
 
 ## Owner-supplied endpoint candidate: 2026-11-05 (UTC)
 
-This current section supersedes earlier empty-endpoint state descriptions without changing their historical results. The owner supplied `https://formspree.io/f/mdeejyvl`; this revision configures only that public module, adds contact/config/honeypot regressions and updates the handoff. UI code, HTML, styles, adapter, assets and workflow are unchanged from the prior candidate.
+This current section supersedes earlier empty-endpoint state descriptions without changing their historical results. The owner supplied `https://formspree.io/f/mdeejyvl`; this revision configures only that public module, adds contact/config/honeypot regressions and updates the handoff. UI code, HTML, styles, adapter, assets and workflow are unchanged from the prior candidate. The existing unavailable-state design check now explicitly injects an empty-config fixture and asserts the notice is visible, so it still exercises the fallback after configuration.
 
 - Local production/test syntax, eight mocked adapter tests and diff whitespace passed. The config smoke test injects fake transport even when reading the actual endpoint. No provider request was made.
 - The aggregate local attempts each report 8 passing unit tests and 53 browser tests blocked in startup hooks. Chromium fails its required process socket (`Operation not permitted`); Playwright WebKit is absent. Browser assertions never ran locally. These failures are not an application pass or new observed application defect.
