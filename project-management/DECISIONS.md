@@ -1,0 +1,43 @@
+# Charles's flooring website: decision log
+
+Updated: **2026-11-05 (UTC)**. Decisions below distinguish approved direction from final review or release approval.
+
+| Date | Decision and status | Consequence / evidence |
+| --- | --- | --- |
+| 2026-10-21 | APPROVED direction: charcoal/white/light-gray interface with the original full-color Colorado logo | Preserve original header/footer artwork and crop, photos, layout, typography, copy, contact destinations and form behavior. [Design record](../docs/charcoal-design-review.md) |
+| 2026-10-21 | IMPLEMENTED, awaiting final package review: design revision in draft PR #2 stacked on the unchanged form PR #1 | Review packages separately; after an approved form merge, retarget/rebase and rerun checks. [PR #2](https://github.com/townsendjat-arch/flooring-site/pull/2), [PR #1](https://github.com/townsendjat-arch/flooring-site/pull/1) |
+| 2026-10-21 | REVIEW disposition: no confirmed contrast defect in sampled screenshot/source-color states | Preserve all raw inconclusive axe records; this is bounded review, not full accessibility signoff. [Testing ledger](TESTING.md#accessibility-disposition) |
+| 2026-10-21 | CONTINUED guardrail: endpoint remains empty; real notification delivery unverified | Mock success means neither live acceptance nor inbox receipt. Provider/account/inbox/privacy/spam/terms/operations decisions remain open. [Form checklist](../docs/estimate-form.md) |
+| 2026-10-21 | APPROVED: four-file project tracking on the existing review branch | Add TASKS, TESTING, DECISIONS and root LINK-INSTRUCTIONS; link detailed reports rather than duplicate them; keep status current as authorized work progresses |
+| 2026-10-21 | PRIORITY: Charles remains Priority #1; customer acquisition is research-only | No outreach, service purchase or integration activation is authorized |
+| 2026-10-21 | NOT APPROVED: further design/features, merge, deployment, new integrations, purchases or outside contact | Obtain specific approval before those actions; documentation or a passing test does not grant it |
+
+## Decisions still required
+
+1. Owner/client final review of both existing PR packages and preserved content.
+2. Exact notification inbox verification, privacy/terms/limits/costs and operational owner. The later endpoint decision below selects the current provider/account/form.
+3. Authorization and results for synthetic live-delivery tests and provider protections.
+4. Completion/disposition of actual-device, assistive-technology and native zoom testing.
+5. Exact release candidate, merge/deploy approval and rollback/post-release verification.
+
+Use the gate IDs and completion evidence in [TASKS.md](TASKS.md), not a second parallel checklist. When a decision changes, add a dated entry with its scope and evidence; do not rewrite an earlier test as testing a later commit.
+
+
+## 2026-11-05 focused implementation authorization
+
+Jason explicitly approved implementing and publishing the bounded pass on existing PR #2 while preserving PR #1 as its dependency: hidden future gallery and testimonial scaffolds, improved mobile workmanship visibility/navigation, truthful photo instructions and removal of customer-facing development placeholders, regression tests and tracking. The original photos, full-color logo and charcoal/white direction remain required.
+
+This authorization supersedes the October documentation-only restriction for these specific changes. Do not wait for Charles's information to finish the approved development. No unconfirmed service territory, new testimonial or other business fact is invented; future content stays hidden pending genuine approved material. Merge, deployment, provider activation and purchases remain separately unapproved. No outside outreach is part of this implementation.
+
+## 2026-11-05 next-phase launch preparation
+
+Jason authorized preparing the exact combined candidate and running available automated tests, with gallery/testimonials hidden, no redesigns or additional features, and no merge, deployment or website publication without final approval. A separate combined draft branch preserves PR #1 and PR #2 and enables full-diff review against main. This replaces the earlier proposed sequential form-then-design release procedure; it does not authorize a main update.
+
+Provider review found that Formspree's current SDK treats a raw `next` string as success, while the previous parser required `ok: true`. The focused readiness correction also rejects contradictory errors rather than showing false success. No endpoint, provider account, notification destination or CAPTCHA behavior is activated by this change. The exact changed candidate requires new automated evidence; the earlier 51/51 engine results belong only to `0efaf166`.
+
+
+## 2026-11-05 owner-supplied Formspree endpoint
+
+The owner created the form in their Formspree account and supplied `https://formspree.io/f/mdeejyvl`, authorizing configuration, required/contact-field verification, spam/error/success checks, a prepared real-submission test and a final release candidate. This supersedes the prior instruction to keep the candidate endpoint empty. The account remains the owner's for now; a later Charles-owned form can replace the public config value without a website rebuild. Native provider transfer support is not assumed.
+
+Real submissions are prepared only, not authorized or performed. Verify the exact inbox, provider settings and approved test contacts/origin before requesting permission for the bounded live test. No paid service, settings change, merge, deployment or website publication is approved. Keep the original design/assets and hidden content unchanged and report remaining launch gates.

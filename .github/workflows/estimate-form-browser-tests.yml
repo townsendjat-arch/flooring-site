@@ -1,0 +1,53 @@
+name: Estimate form browser tests
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: estimate-form-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  mocked-browser-tests:
+    if: github.event.pull_request.number == 1 && github.head_ref == 'review/estimate-form-safe-submit' && github.event.pull_request.head.repo.full_name == github.repository
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CI: true
+      BROWSER: ${{ matrix.browser }}
+      REVIEW_ARTIFACTS: review-artifacts/${{ matrix.browser }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Install pinned test dependencies without lifecycle scripts
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Install test browser and its system dependencies
+        run: npx --no-install playwright install --with-deps ${{ matrix.browser }}
+      - name: Check JavaScript syntax
+        run: npm run check && node --check tests/estimate-browser.test.cjs
+      - name: Run unit and mocked browser tests
+        run: npm test
+      - name: Retain synthetic form review screenshots briefly
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: estimate-review-${{ matrix.browser }}
+          path: review-artifacts/${{ matrix.browser }}/
+          if-no-files-found: ignore
+          retention-days: 3
+          compression-level: 9
