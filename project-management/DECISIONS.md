@@ -1,6 +1,6 @@
 # Charles's flooring website: decision log
 
-Updated: **2026-10-21 (UTC)**. Decisions below distinguish approved direction from final review or release approval.
+Updated: **2026-11-05 (UTC)**. Decisions below distinguish approved direction from final review or release approval.
 
 | Date | Decision and status | Consequence / evidence |
 | --- | --- | --- |
@@ -21,3 +21,10 @@ Updated: **2026-10-21 (UTC)**. Decisions below distinguish approved direction fr
 5. Exact release candidate, merge/deploy approval and rollback/post-release verification.
 
 Use the gate IDs and completion evidence in [TASKS.md](TASKS.md), not a second parallel checklist. When a decision changes, add a dated entry with its scope and evidence; do not rewrite an earlier test as testing a later commit.
+
+
+## 2026-11-05 focused implementation authorization
+
+Jason explicitly approved implementing and publishing the bounded pass on existing PR #2 while preserving PR #1 as its dependency: hidden future gallery and testimonial scaffolds, improved mobile workmanship visibility/navigation, truthful photo instructions and removal of customer-facing development placeholders, regression tests and tracking. The original photos, full-color logo and charcoal/white direction remain required.
+
+This authorization supersedes the October documentation-only restriction for these specific changes. Do not wait for Charles's information to finish the approved development. No unconfirmed service territory, new testimonial or other business fact is invented; future content stays hidden pending genuine approved material. Merge, deployment, provider activation and purchases remain separately unapproved. No outside outreach is part of this implementation.

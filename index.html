@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>CM Tile & Stone | Custom Tile, Showers & Flooring</title>
-  <meta name="description" content="CM Tile & Stone provides custom showers, tile, stone, backsplashes, flooring, and basement refinishing across the Denver metro area. Quality work built to last.">
+  <meta name="description" content="CM Tile & Stone provides custom showers, tile, stone, backsplashes, flooring, and basement refinishing with care and attention to detail. Contact Charles to confirm service availability.">
   <meta property="og:title" content="CM Tile & Stone | Quality Work Built to Last">
   <meta property="og:description" content="Custom showers, tile, stone, backsplashes, flooring, and basement refinishing. See the craftsmanship behind the finished surface.">
   <meta property="og:image" content="https://townsendjat-arch.github.io/flooring-site/assets/shower-finished.jpg">
@@ -12,7 +12,7 @@
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="theme-color" content="#262626">
-  <link rel="stylesheet" href="styles.css?v=20261021-charcoal-original-logo">
+  <link rel="stylesheet" href="styles.css?v=20261105-mobile-content">
 </head>
 <body>
 <header class="site-header">
@@ -56,10 +56,7 @@
 
     <div class="hero-image-wrap">
       <img src="assets/shower-finished.jpg" width="1290" height="1595" decoding="async" fetchpriority="high" alt="Finished custom shower with large-format gray tile, dual shower heads, handheld fixtures, custom niche, and mosaic floor">
-      <div class="image-fallback">
-        <span>Finished project photo</span>
-        <small>Add assets/shower-finished.jpg</small>
-      </div>
+      <p class="image-fallback">The finished project photo could not load.</p>
     </div>
   </section>
 
@@ -73,7 +70,7 @@
         <article class="story-card">
           <div class="story-image">
             <img src="assets/shower-before.jpg" width="1290" height="1602" loading="lazy" decoding="async" alt="Original tan tiled shower before remodel">
-            <div class="image-fallback"><span>Before</span><small>Add shower-before.jpg</small></div>
+            <p class="image-fallback">The before-remodel photo could not load.</p>
           </div>
           <div class="story-copy">
             <span class="step-label">1. BEFORE</span>
@@ -86,7 +83,7 @@
         <article class="story-card">
           <div class="story-image">
             <img src="assets/shower-framing.jpg" width="1290" height="1606" loading="lazy" decoding="async" alt="Shower remodel opened to the framing with reworked plumbing">
-            <div class="image-fallback"><span>Behind the walls</span><small>Add shower-framing.jpg</small></div>
+            <p class="image-fallback">The framing photo could not load.</p>
           </div>
           <div class="story-copy">
             <span class="step-label">2. BEHIND THE WALLS</span>
@@ -99,7 +96,7 @@
         <article class="story-card">
           <div class="story-image">
             <img src="assets/shower-finished.jpg" width="1290" height="1595" loading="lazy" decoding="async" alt="Finished modern custom shower">
-            <div class="image-fallback"><span>Finished result</span><small>Add shower-finished.jpg</small></div>
+            <p class="image-fallback">The finished project photo could not load.</p>
           </div>
           <div class="story-copy">
             <span class="step-label">3. FINISHED RESULT</span>
@@ -109,6 +106,24 @@
       </div>
     </div>
   </section>
+
+  <!-- Keep hidden until approved project cards are added. See docs/content-guide.md. -->
+  <section class="section future-gallery" id="project-gallery" aria-labelledby="galleryTitle" hidden>
+    <div class="wrap">
+      <div class="section-heading">
+        <p class="eyebrow">MORE OF OUR WORK</p>
+        <h2 id="galleryTitle">Project details, up close.</h2>
+      </div>
+      <div class="gallery-grid"></div>
+    </div>
+  </section>
+  <template id="projectPhotoCard">
+    <figure class="gallery-card">
+      <!-- Set src, width, height and a descriptive alt before adding this card. -->
+      <img loading="lazy" decoding="async" alt="">
+      <figcaption><h3></h3><p></p></figcaption>
+    </figure>
+  </template>
 
   <section class="section craftsmanship">
     <div class="wrap">
@@ -237,8 +252,8 @@
 
         <button class="project-card unsure-card" data-project="Not Sure Yet">
           <span class="project-kicker">NOT SURE YET?</span>
-          <strong>Show Us the Space</strong>
-          <span class="project-description">You do not need to know the trade terminology. Send a few details and photos and start from there.</span>
+          <strong>Tell Us About the Space</strong>
+          <span class="project-description">You do not need to know the trade terminology. Start with a few details; discuss photos with Charles when you connect.</span>
           <span class="project-fit">Good fit for: early-stage ideas</span>
           <span class="project-arrow">Start a conversation →</span>
         </button>
@@ -246,29 +261,29 @@
     </div>
   </section>
 
-  <section class="section reviews" id="reviews">
+  <!-- Keep hidden until genuine feedback and attribution are approved. -->
+  <section class="section reviews" id="reviews" aria-labelledby="reviewsTitle" hidden>
     <div class="wrap">
-      <div class="section-heading split-heading">
-        <div>
-          <p class="eyebrow">CUSTOMER STORIES</p>
-          <h2>What homeowners say after the dust settles.</h2>
-        </div>
-        <p>Real customer feedback will be featured here as the site is finalized. The goal is simple: let homeowners hear directly from people who have lived through the project, not from marketing copy.</p>
+      <div class="section-heading">
+        <p class="eyebrow">CUSTOMER STORIES</p>
+        <h2 id="reviewsTitle">In our customers' words.</h2>
       </div>
-
-      <div class="review-coming-soon">
-        <strong>Customer reviews coming soon.</strong>
-        <span>Project-specific reviews will be paired with real before-and-after work whenever possible.</span>
-      </div>
+      <div class="testimonial-grid"></div>
     </div>
   </section>
+  <template id="testimonialCard">
+    <figure class="testimonial-card">
+      <blockquote><p></p></blockquote>
+      <figcaption></figcaption>
+    </figure>
+  </template>
 
   <section class="section service-area" id="service-area">
     <div class="wrap service-area-grid">
       <div>
         <p class="eyebrow">LOCAL TILE & STONE WORK</p>
-        <h2>Proudly serving Colorado.</h2>
-        <p class="service-area-lead">CM Tile & Stone works with homeowners on showers, bathrooms, backsplashes, tile, stone, flooring, and basement refinishing projects throughout the area.</p>
+        <h2>Let’s talk about your project location.</h2>
+        <p class="service-area-lead">Planning a shower, bathroom, backsplash, tile, stone, flooring, or basement project? Contact Charles with your location to check service availability.</p>
         <p class="service-area-note">Not sure if your project is within range? Send your ZIP code and we’ll confirm before scheduling an estimate.</p>
       </div>
 
@@ -291,7 +306,7 @@
       </div>
       <ol class="steps">
         <li><span>1</span><div><strong>Tell us about the project</strong><p>A few details are enough to get started.</p></div></li>
-        <li><span>2</span><div><strong>We talk it through</strong><p>Call, text, or send photos if that is easier.</p></div></li>
+        <li><span>2</span><div><strong>We talk it through</strong><p>Call or text to talk through the details and ask how to share project photos.</p></div></li>
         <li><span>3</span><div><strong>We see the space</strong><p>Schedule a free in-person estimate.</p></div></li>
         <li><span>4</span><div><strong>You get a clear next step</strong><p>Scope, timing, and what happens next.</p></div></li>
       </ol>
@@ -315,7 +330,7 @@
     <div class="footer-brand">
       <a class="brand" href="#top"><span class="brand-logo"><img src="assets/cm-tile-stone-card.png" width="1125" height="675" loading="lazy" alt="CM Colorado mountain logo"></span><span><strong>CM Tile &amp; Stone</strong><small>QUALITY WORK • BUILT TO LAST</small></span></a>
       <p>Charles Marquez · Owner &amp; Installer</p>
-      <p>Proudly serving Colorado</p>
+      <p>Contact Charles to confirm service availability.</p>
     </div>
     <div class="footer-contact">
       <a href="tel:+13033568421">Call (303) 356-8421</a>
@@ -430,8 +445,10 @@
 <noscript><p class="wrap">Online estimate requests need JavaScript. Please <a href="tel:+13033568421">call (303) 356-8421</a> or <a href="sms:+13033568421">text Charles</a>.</p></noscript>
 <script type="module" src="script.js?v=20261009-estimate-form"></script>
 <script>
-  document.querySelectorAll("img").forEach(img => {
-    img.addEventListener("error", () => img.closest(".hero-image-wrap, .story-image")?.classList.add("missing-image"));
+  document.querySelectorAll(".hero-image-wrap img, .story-image img").forEach(img => {
+    const showFallback = () => img.parentElement.classList.add("missing-image");
+    img.addEventListener("error", showFallback);
+    if (img.complete && img.naturalWidth === 0) showFallback();
   });
 </script>
 </body>

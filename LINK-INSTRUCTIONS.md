@@ -1,6 +1,6 @@
 # Project maintenance instructions
 
-Last updated: **2026-10-21 (UTC)**. These instructions organize the authorized work; they do not grant new action permissions.
+Last updated: **2026-11-05 (UTC)**. These instructions organize the authorized work; they do not grant new action permissions.
 
 ## Start here
 
@@ -13,8 +13,8 @@ Last updated: **2026-10-21 (UTC)**. These instructions organize the authorized w
 
 - Charles is Priority #1. Customer acquisition is research-only.
 - Keep tracking changes on `review/charcoal-white-design`, the existing PR #2 branch. PR #1 is a separate, unchanged dependency. Read current remote heads and working-tree changes before editing; do not overwrite concurrent work.
-- The current tracking authorization is documentation-only. Preserve existing reports and link them. No further design/features, merge, deployment, integration activation, services/purchases or outside contact without approval.
-- Preserve the approved original full-color logo and photos; do not alter artwork, crop, layout or content under a documentation task.
+- The 2026-11-05 focused pass authorizes hidden gallery/testimonial scaffolds, mobile workmanship/navigation improvements, truthful photo/failure copy, related tests/tracking and publication to PR #2. Preserve historical reports. Merge, deployment, integration activation, purchases and outside contact still require separate approval.
+- Preserve the approved original full-color logo and image files. Mobile layout changes are authorized for the focused pass; the original featured project remains visible. Future gallery/testimonial content stays hidden until genuine material is approved.
 - Keep the form endpoint and actual notification delivery marked unverified until authorized live tests prove both provider records and inbox receipt. Never place credentials or real lead data in public files.
 - Do not equate no confirmed contrast defect in sampled states with completed manual accessibility testing or certification.
 

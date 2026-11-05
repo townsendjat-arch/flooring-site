@@ -34,3 +34,8 @@ This prototype uses only HTML, CSS, and JavaScript. No backend, analytics, or pr
 ## Proposed estimate-form integration
 
 The estimate flow includes an unconfigured, fail-closed Formspree adapter. No live submission destination is set. See [setup and prelaunch checklist](docs/estimate-form.md) for owner decisions, external server/spam controls, local checks, and authorization gates. Do not merge or deploy this proposal without approval.
+
+
+## Future project and testimonial content
+
+The featured shower remains visible. Future gallery and testimonial sections are prepared but hidden until genuine content is approved. Follow [the content guide](docs/content-guide.md) to add photographs, captions, descriptive alt text and customer quotations. Do not expose blank cards or invent reviews. The focused mobile/content implementation is tracked in [TASKS](project-management/TASKS.md) and [TESTING](project-management/TESTING.md).

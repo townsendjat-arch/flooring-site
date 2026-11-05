@@ -9,7 +9,8 @@ const engineName = process.env.BROWSER || 'chromium';
 const engine = require('playwright')[engineName];
 const root = path.resolve(__dirname, '..');
 const artifacts = process.env.REVIEW_ARTIFACTS;
-const base = '6f2612cd3f74ac2573cfefbdf23ecb360de98fb0';
+// Complete approved pre-implementation baseline, not old CSS on new HTML.
+const base = 'cd212ee19fa272c8e8d9ab284b7555a1def62121';
 let browser, server, origin;
 before(async () => {
   server = createServer(async (req, res) => {
@@ -28,13 +29,21 @@ before(async () => {
   console.log(`Design evidence: ${engineName} ${browser.version()}; Playwright ${require('playwright/package.json').version}`);
 });
 after(async () => { await browser?.close(); await new Promise(resolve => server?.close(resolve)); });
-async function pageFor(t, options = {}, baselineCss = null) {
+async function pageFor(t, options = {}, baseline = false) {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, reducedMotion: 'reduce', ...options });
   t.after(() => context.close());
   // All network traffic outside this local test server is blocked. No leads are sent.
-  await context.route('**/*', route => route.request().url().startsWith(origin + '/') ? route.continue() : route.abort());
+  await context.route('**/*', route => {
+    if (!route.request().url().startsWith(origin + '/')) return route.abort();
+    const pathname = new URL(route.request().url()).pathname;
+    const file = pathname === '/' ? 'index.html' : pathname.slice(1);
+    if (baseline && ['index.html', 'styles.css', 'script.js', 'estimate-config.js', 'estimate-service.js'].includes(file)) {
+      const body = execFileSync('git', ['show', `${base}:${file}`], { cwd: root, encoding: 'utf8' });
+      return route.fulfill({ contentType: file.endsWith('.css') ? 'text/css' : file.endsWith('.js') ? 'text/javascript' : 'text/html', body });
+    }
+    return route.continue();
+  });
   const page = await context.newPage(); const errors = [], posts = [];
-  if (baselineCss) await page.route('**/styles.css?*', route => route.fulfill({ contentType: 'text/css', body: baselineCss }));
   page.on('pageerror', error => errors.push(error.message));
   page.on('request', request => { if (request.method() === 'POST') posts.push(request.url()); });
   t.after(() => { assert.deepEqual(errors, []); assert.deepEqual(posts, []); });
@@ -99,11 +108,9 @@ for (const config of [
   { name: 'narrow', viewport: { width: 320, height: 640 } },
   { name: 'landscape-home', viewport: { width: 812, height: 375 }, hasTouch: true },
 ]) {
-  test(`${config.name}: neutral homepage, preserved layout, photography and accessibility`, async t => {
+  test(`${config.name}: neutral homepage, original photography, approved layout and accessibility`, async t => {
     const { name, ...options } = config;
     const page = await pageFor(t, options);
-    const geometry = target => target.locator('main > section,.hero-image-wrap,.story-image,.project-card').evaluateAll(els => els.map(el => { const r = el.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height }; }));
-    const after = await geometry(page);
     await palette(page);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true, 'Homepage fits viewport');
     assert.deepEqual(await page.locator('.brand-logo img').evaluateAll(els => els.map(el => getComputedStyle(el).filter)), ['none', 'none'], 'Both logo instances retain the original full colors');
@@ -114,12 +121,19 @@ for (const config of [
     const summary = { viewport: options.viewport, engine: engineName, violations: results.violations.map(r => ({ id: r.id, nodes: r.nodes.map(n => ({ target: n.target, summary: n.failureSummary })) })), incomplete: results.incomplete.map(r => ({ id: r.id, nodes: r.nodes.map(n => ({ target: n.target, summary: n.failureSummary })) })) };
     if (artifacts) await writeFile(path.join(artifacts, `${name}-homepage-axe.json`), JSON.stringify(summary, null, 2));
     assert.deepEqual(summary.violations, []);
-    // Exact base CSS on the unchanged page content provides before evidence and a layout guard.
-    const baseCss = execFileSync('git', ['show', `${base}:styles.css`], { cwd: root, encoding: 'utf8' });
-    // A fresh navigation avoids animating the old transition:all rule while
-    // hot-swapping CSS, which would sample transient card font sizes.
-    const beforePage = await pageFor(t, options, baseCss);
-    assert.deepEqual(await geometry(beforePage), after, 'Page structure, geometry and photo crops remain unchanged');
+    // Full HTML/CSS/JS from the actual earlier commit provides honest before evidence.
+    const beforePage = await pageFor(t, options, true);
+    const photoSources = target => target.locator('.hero-image-wrap img,.story-image img,.brand-logo img').evaluateAll(els => els.map(el => ({ src: el.getAttribute('src'), width: el.getAttribute('width'), height: el.getAttribute('height'), alt: el.getAttribute('alt') })));
+    assert.deepEqual(await photoSources(page), await photoSources(beforePage), 'Original photograph/logo files, dimensions and descriptions are unchanged');
+    const featuredCopy = target => target.locator('#work .story-copy').allTextContents();
+    assert.deepEqual(await featuredCopy(page), await featuredCopy(beforePage), 'Featured before/framing/finished story remains intact');
+    if (options.viewport.width <= 620) {
+      const top = target => target.locator('.hero-image-wrap').evaluate(el => el.getBoundingClientRect().top);
+      assert.ok(await top(page) + 250 < await top(beforePage), 'Finished workmanship appears substantially sooner');
+      assert.ok(await top(page) < options.viewport.height, 'Workmanship is visible in the initial phone viewport');
+      const ratio = await page.locator('.hero-image-wrap img').evaluate(el => el.getBoundingClientRect().height / el.getBoundingClientRect().width);
+      assert.ok(Math.abs(ratio - 1595 / 1290) < .01, 'Phone hero shows original natural proportions without cropping');
+    }
     await save(beforePage, `${name}-before-hero`);
     await save(beforePage, `${name}-before-full`, true);
   });
@@ -174,4 +188,101 @@ test('neutral error and unavailable states retain text, ARIA and visible boundar
   assert.ok(await contrast(page, '#fieldError-projectType', 'color', 'rgb(255, 255, 255)') >= 4.5);
   await page.keyboard.press('Escape');
   assert.equal(await page.locator('[data-open-estimate]').first().evaluate(el => el === document.activeElement), true);
+});
+
+
+test('future gallery and testimonials remain hidden, empty and absent from navigation', async t => {
+  const page = await pageFor(t);
+  for (const selector of ['#project-gallery', '#reviews']) {
+    assert.equal(await page.locator(selector).getAttribute('hidden'), '');
+    assert.equal(await page.locator(selector).isVisible(), false);
+    assert.equal(await page.locator(`a[href="${selector}"]`).count(), 0);
+  }
+  assert.equal(await page.locator('#project-gallery .gallery-grid').locator(':scope > *').count(), 0);
+  assert.equal(await page.locator('#reviews .testimonial-grid').locator(':scope > *').count(), 0);
+  assert.equal(await page.getByRole('heading', { name: 'Project details, up close.' }).count(), 0);
+  assert.equal(await page.getByRole('heading', { name: "In our customers' words." }).count(), 0);
+  const template = await page.locator('#projectPhotoCard').evaluate(el => ({ images: el.content.querySelectorAll('img').length, src: el.content.querySelector('img').getAttribute('src'), caption: !!el.content.querySelector('figcaption') }));
+  assert.deepEqual(template, { images: 1, src: null, caption: true });
+  assert.equal(await page.locator('#testimonialCard').evaluate(el => el.content.querySelector('blockquote p').textContent), '');
+  assert.equal(await page.locator('#work').isVisible(), true);
+  assert.equal(await page.locator('#work .story-card').count(), 3);
+  assert.doesNotMatch(await page.locator('body').innerText(), /coming soon|site is finalized|Add (?:assets|shower)|Real customer feedback will/i);
+});
+
+for (const width of [320, 375, 812]) {
+  test(`${width}px: visible narrow navigation supports keyboard, touch targets and anchored headings`, async t => {
+    const page = await pageFor(t, { viewport: { width, height: width === 812 ? 375 : 812 }, hasTouch: true });
+    for (const link of await page.locator('nav a').all()) {
+      assert.equal(await link.isVisible(), true);
+      const bounds = await link.boundingBox();
+      assert.ok(bounds.height >= 44 && bounds.width >= 44);
+      assert.ok(bounds.x >= -1 && bounds.x + bounds.width <= width + 1);
+      await link.focus(); await page.keyboard.press('Enter');
+      const target = await link.getAttribute('href');
+      assert.equal(new URL(page.url()).hash, target);
+      const top = await page.locator(target).evaluate(el => el.getBoundingClientRect().top);
+      const headerBottom = await page.locator('.site-header').evaluate(el => el.getBoundingClientRect().bottom);
+      assert.ok(top >= headerBottom - 1, 'Anchor content is not hidden by the header');
+    }
+    await page.locator('nav a').first().tap();
+    assert.equal(new URL(page.url()).hash, '#work');
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true);
+  });
+}
+
+test('enlarged phone text keeps navigation reachable without horizontal scrolling', async t => {
+  const page = await pageFor(t, { viewport: { width: 320, height: 640 } });
+  await page.addStyleTag({ content: 'html{font-size:200%}' });
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true);
+  for (const link of await page.locator('nav a').all()) {
+    assert.equal(await link.isVisible(), true);
+    await link.focus();
+    assert.equal(await link.evaluate(el => el === document.activeElement), true);
+  }
+  await save(page, 'narrow-navigation-enlarged-text');
+});
+
+test('future cards support approved image and quote content with accessible reflow', async t => {
+  const page = await pageFor(t, { viewport: { width: 320, height: 640 } });
+  // Test-only population uses the existing project photo and explicitly synthetic text.
+  await page.evaluate(() => {
+    const card = document.querySelector('#projectPhotoCard').content.cloneNode(true);
+    const img = card.querySelector('img');
+    img.src = 'assets/shower-finished.jpg'; img.width = 1290; img.height = 1595;
+    img.alt = 'Test fixture: finished gray tiled shower with niche and mosaic floor';
+    card.querySelector('h3').textContent = 'Test fixture project';
+    card.querySelector('figcaption p').textContent = 'Test-only caption, never published as a new project.';
+    document.querySelector('.gallery-grid').append(card);
+    document.querySelector('#project-gallery').hidden = false;
+    const quote = document.querySelector('#testimonialCard').content.cloneNode(true);
+    quote.querySelector('blockquote p').textContent = 'Synthetic quote for layout testing only.';
+    quote.querySelector('figcaption').textContent = 'Fictional test attribution';
+    document.querySelector('.testimonial-grid').append(quote);
+    document.querySelector('#reviews').hidden = false;
+  });
+  await page.locator('#project-gallery img').scrollIntoViewIfNeeded();
+  await page.locator('#project-gallery img').evaluate(img => img.decode());
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true);
+  assert.equal(await page.getByRole('img', { name: /Test fixture: finished/ }).count(), 1);
+  await palette(page);
+  const result = await new AxeBuilder({ page }).include('#project-gallery').include('#reviews').withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
+  assert.deepEqual(result.violations, []);
+});
+
+test('photo failure shows useful text without developer filenames; no upload or territory promise', async t => {
+  const page = await pageFor(t, { viewport: { width: 320, height: 640 } });
+  await page.route('**/assets/shower-*.jpg', route => route.abort());
+  await page.reload();
+  await page.locator('img').evaluateAll(imgs => imgs.forEach(img => img.loading = 'eager'));
+  await page.waitForFunction(() => document.querySelectorAll('.missing-image').length === 4);
+  assert.equal(await page.locator('.image-fallback:visible').count(), 4);
+  assert.ok((await page.locator('.hero-image-wrap').boundingBox()).height > 300, 'Failed phone hero retains a useful fallback box');
+  const text = await page.locator('body').innerText();
+  assert.doesNotMatch(text, /Add assets|Add shower|coming soon|throughout the area|Proudly serving Colorado|Send a few details and photos/);
+  assert.match(text, /photo could not load/);
+  assert.equal(await page.locator('input[type=file]').count(), 0);
+  assert.match(await page.locator('[data-step="2"] .field-help').textContent(), /not collected by this form/);
+  assert.match(await page.locator('.service-area').innerText(), /check service availability/);
+  assert.doesNotMatch(await page.locator('meta[name=description]').getAttribute('content'), /Denver metro/);
 });

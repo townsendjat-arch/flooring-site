@@ -1,6 +1,6 @@
 # Charles's flooring website: verification ledger
 
-Evidence checked: **2026-10-21 (UTC)**. Scope: existing form/design review package, not the deployed site.
+Historical evidence checked: **2026-10-21 (UTC)**. Focused implementation checks added **2026-11-05 (UTC)**. Scope: existing form/design review package, not the deployed site.
 
 ## Exact revision and evidence
 
@@ -52,3 +52,16 @@ Prepublication validation on 2026-10-21 (UTC) passed: exactly the four requested
 The existing [test workflow](../.github/workflows/charcoal-design-review.yml) is PR-only and restricted to this review branch, requests contents-read access, retains no checkout credentials and has no deployment or live-delivery step. Observed Pages runs were main-only; account-level settings/hidden webhooks were not audited. After a docs push, wait for that exact head's triggered checks and report their result separately. Later code edits or rebases require new exact-head evidence.
 
 Before release, complete the open gates in [TASKS.md](TASKS.md) and the [provider/prelaunch checklist](../docs/estimate-form.md). Passing CI means tested development, not launch approval.
+
+
+## Focused implementation verification: 2026-11-05
+
+The containing revision adds the authorized hidden future gallery/testimonials, phone-first workmanship layout, narrow navigation, photo/failure-copy corrections and coverage-neutral wording. The exact published SHA and completed CI result belong in [PR #2 checks](https://github.com/townsendjat-arch/flooring-site/pull/2/checks) and its review summary, not the older code-run rows above.
+
+- Local production/test JavaScript syntax, four mocked adapter unit tests, whitespace and unchanged original asset/config/module checks are run before publication. Local browser startup is unavailable: Chromium fails its required process socket; an execution retry failed during sandbox setup. Browser-install downloads were invalid archives. These are infrastructure limits, not browser passes.
+- The existing isolated PR-only Chromium/WebKit workflow supplies the browser evidence for the published candidate. It still blocks non-local requests and mocks provider transport. Check the exact run's final result before treating the candidate as passed.
+- New tests cover hidden/empty/inert future sections, original featured story and photograph/logo preservation, test-only populated card accessibility/reflow, 320/375/812px navigation, phone photo placement/natural proportions, enlarged text and image-failure copy. Existing form regressions remain in the aggregate suite.
+- Before/after images now compare complete HTML/CSS/JS from `cd212ee19fa272c8e8d9ab284b7555a1def62121` with the candidate. Mobile/narrow full-page and initial-view captures are generated for both engines. The former unchanged-layout assertion was replaced by explicit intended-change and preservation checks.
+- Historical October screenshot artifacts have expired and cannot serve as new visual verification. New screenshots require visual review and durable authorized delivery before short-lived CI artifacts expire.
+
+Actual devices, Safari application, screen readers, native browser zoom, provider protection and real inbox delivery remain unverified. No passing mock or screenshot authorizes launch.
