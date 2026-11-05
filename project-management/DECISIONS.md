@@ -15,7 +15,7 @@ Updated: **2026-11-05 (UTC)**. Decisions below distinguish approved direction fr
 ## Decisions still required
 
 1. Owner/client final review of both existing PR packages and preserved content.
-2. Provider/account/form, exact notification inbox, privacy/terms/limits/costs and operational owner.
+2. Exact notification inbox verification, privacy/terms/limits/costs and operational owner. The later endpoint decision below selects the current provider/account/form.
 3. Authorization and results for synthetic live-delivery tests and provider protections.
 4. Completion/disposition of actual-device, assistive-technology and native zoom testing.
 5. Exact release candidate, merge/deploy approval and rollback/post-release verification.
@@ -34,3 +34,10 @@ This authorization supersedes the October documentation-only restriction for the
 Jason authorized preparing the exact combined candidate and running available automated tests, with gallery/testimonials hidden, no redesigns or additional features, and no merge, deployment or website publication without final approval. A separate combined draft branch preserves PR #1 and PR #2 and enables full-diff review against main. This replaces the earlier proposed sequential form-then-design release procedure; it does not authorize a main update.
 
 Provider review found that Formspree's current SDK treats a raw `next` string as success, while the previous parser required `ok: true`. The focused readiness correction also rejects contradictory errors rather than showing false success. No endpoint, provider account, notification destination or CAPTCHA behavior is activated by this change. The exact changed candidate requires new automated evidence; the earlier 51/51 engine results belong only to `0efaf166`.
+
+
+## 2026-11-05 owner-supplied Formspree endpoint
+
+The owner created the form in their Formspree account and supplied `https://formspree.io/f/mdeejyvl`, authorizing configuration, required/contact-field verification, spam/error/success checks, a prepared real-submission test and a final release candidate. This supersedes the prior instruction to keep the candidate endpoint empty. The account remains the owner's for now; a later Charles-owned form can replace the public config value without a website rebuild. Native provider transfer support is not assumed.
+
+Real submissions are prepared only, not authorized or performed. Verify the exact inbox, provider settings and approved test contacts/origin before requesting permission for the bounded live test. No paid service, settings change, merge, deployment or website publication is approved. Keep the original design/assets and hidden content unchanged and report remaining launch gates.

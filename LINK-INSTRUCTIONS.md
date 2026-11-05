@@ -17,7 +17,11 @@ Last updated: **2026-11-05 (UTC)**. These instructions organize the authorized w
 - Preserve the approved original full-color logo and image files. Mobile layout changes are authorized for the focused pass; the original featured project remains visible. Future gallery/testimonial content stays hidden until genuine material is approved.
 - Keep the form endpoint and actual notification delivery marked unverified until authorized live tests prove both provider records and inbox receipt. Never place credentials or real lead data in public files.
 - Do not equate no confirmed contrast defect in sampled states with completed manual accessibility testing or certification.
-- The next-phase authorization permits preparing the exact combined candidate, necessary form-readiness corrections and automated tests, but no redesign or additional features. Gallery/testimonials and the production endpoint remain hidden/empty. Final approval is still required before merge, deployment or website publication.
+- The next-phase authorization permits preparing the exact combined candidate, necessary form-readiness corrections and automated tests, but no redesign or additional features. Gallery/testimonials remain hidden. The later endpoint authorization below supersedes the prior empty-endpoint requirement. Final approval is still required before merge, deployment or website publication.
+
+## Current endpoint authorization: 2026-11-05 (UTC)
+
+The owner created a form in their Formspree account and supplied `https://formspree.io/f/mdeejyvl`. Configure it only in the combined review candidate, verify contact validation/errors/spam behavior with mocked tests, prepare the live-delivery test and document later account/endpoint replacement. No live submission, provider settings change, merge, deployment or website publication is authorized. Provider configuration and mailbox delivery remain unverified. Keep PR #1 and PR #2 unchanged.
 
 ## Keep the record current
 

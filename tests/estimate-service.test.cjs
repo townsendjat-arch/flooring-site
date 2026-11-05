@@ -3,6 +3,23 @@ const assert = require('node:assert/strict');
 const service = import('../estimate-service.js');
 const config = { endpoint: 'https://formspree.io/f/mockonly', timeoutMs: 20 };
 
+test('candidate config and replacement form work without rebuilding and never use real transport', async () => {
+  const {sendEstimate,isConfigured}=await service;
+  const {estimateConfig}=await import('../estimate-config.js');
+  assert.equal(isConfigured(estimateConfig.endpoint),true);
+  assert.equal(estimateConfig.timeoutMs,15000);
+  assert.equal(Object.isFrozen(estimateConfig),true);
+  for (const selected of [estimateConfig,{...estimateConfig,endpoint:'https://formspree.io/f/replacementtest'}]) {
+    let calls=0;
+    await sendEstimate({name:'Synthetic test only'},selected,async(url)=>{
+      calls+=1;
+      assert.equal(url,selected.endpoint);
+      return new Response(JSON.stringify({next:'/thanks'}));
+    });
+    assert.equal(calls,1);
+  }
+});
+
 test('empty, legacy, non-HTTPS, and unexpected destinations cannot transmit', async () => {
   const {sendEstimate} = await service;
   for (const endpoint of ['', 'https://formspree.io/person@example.invalid', 'http://formspree.io/f/mockonly', 'https://evil.invalid/f/test', 'https://formspree.io/f/mockonly?x=1']) {

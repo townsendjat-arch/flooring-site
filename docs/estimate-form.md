@@ -1,6 +1,6 @@
 # Estimate form: review and launch checklist
 
-Status: proposed code only. The Formspree endpoint is deliberately empty, so nothing is transmitted and no success screen is shown on Send. An early notice, before the first question, explains that online requests are unavailable and offers the existing call/text links. The notice remains for an empty or invalid endpoint and is hidden when the configured endpoint passes the same URL check used before sending. Do not merge or deploy without the owner's approval. This change does not create a provider account, configure an inbox, buy a plan, or change hosting.
+Status (2026-11-05 UTC): configured, unreleased review candidate. The owner supplied `https://formspree.io/f/mdeejyvl` from their Formspree account, and the candidate now uses it. No actual submission or inbox-delivery test has been performed. Opening an isolated copy can now send when a person deliberately submits, so automated tests replace transport and block all outside requests. Empty or invalid configuration still fails closed and displays the early call/text notice. Do not merge, deploy or publish the website without final approval. No provider settings, inbox, paid plan or hosting changes were made. Historical verification sections below describe earlier revisions, not the configured candidate.
 
 ## Scope and architecture
 
@@ -12,7 +12,7 @@ No lead data is logged or saved in browser storage by this code. Draft values st
 
 ## Required owner decisions before activation
 
-- [ ] Approve Formspree as the processor and create/select the owner-controlled account and exact form.
+- [x] Owner selected Formspree in their own account and supplied the public form endpoint (2026-11-05). Endpoint ownership/account settings are owner-reported, not independently inspected.
 - [ ] Approve and verify the destination inbox. The email already printed in the footer is not assumed to be the authorized destination.
 - [ ] Review the provider's current terms, privacy, storage/retention, plan limits, and any costs before accepting or buying anything.
 - [ ] Approve the provisional form privacy copy for the actual configuration. Link an appropriate reviewed privacy notice if required. Do not promise deletion schedules or exclusive use beyond verified practice.
@@ -28,16 +28,18 @@ No lead data is logged or saved in browser storage by this code. Draft values st
 - [ ] Confirm HTTPS, endpoint ownership, and browser CORS behavior on the approved origin. No Cloudflare migration or DNS change is part of this work.
 - [ ] Never place API keys or credentials in these public static files. The public form endpoint is not a secret.
 
-## Configure only after approval
+## Public configuration and later account change
 
-1. Copy the owner's approved public endpoint in the form `https://formspree.io/f/FORM_ID` into `endpoint` in `estimate-config.js`. Do not use an email-address endpoint or a test placeholder on a deployed site.
+1. The owner-supplied endpoint is now the `endpoint` value in `estimate-config.js`. To replace it later, change only that value to the approved public `https://formspree.io/f/FORM_ID`. Set it to `""` to disable online requests. Do not use an email-address endpoint or a test placeholder on a deployed site.
 2. Keep the default 15-second timeout unless testing warrants a change.
 3. Recheck provider acceptance semantics against the selected form. The prepared adapter requires HTTP success plus either JSON `ok: true` or the current official SDK's raw success marker, a nonempty `next` string. It rejects contradictory error fields, malformed success markers, HTML, malformed JSON, and ambiguous responses. It never follows `next`. These are mocked contract checks, not proof of live acceptance or email delivery.
-4. Do not add a live endpoint to automated tests. They replace transport and block outside requests; all contact data is fictional.
+4. Candidate smoke tests load the real public configuration but replace `fetch` before application code runs and block every non-local network request. Other fixtures use only fake endpoints. No test ever uses real provider transport; all contact data is fictional.
+
+This is an unbundled static JavaScript module: there is no build or backend account binding. A new form in Charles's account can use the same field names and adapter. Create/verify that new form and notification destination, repeat its validation/spam/domain settings, replace this one config value, then rerun automated and separately approved live-delivery checks before approving publication of the updated static file. Confirm the served config is fresh after publication (including any hosting/CDN caches) and reload open tabs. Keep the old form available until the approved cutover is verified, then have its owner decide on disabling it and handling retained submissions. Submission history and settings do not move just because the URL changes. Native Formspree form/account transfer availability is not assumed; endpoint replacement is the guaranteed website-side migration path.
 
 ## Local review
 
-Use Node.js 22+ and install the pinned development dependencies with `npm install --ignore-scripts --no-audit --no-fund`. Then run `npm run check` and `npm test`. Browser tests use Playwright; install Chromium and WebKit with `npx playwright install --with-deps chromium webkit`. Run `BROWSER=chromium npm test` and `BROWSER=webkit npm test` separately. An existing compatible Chromium may be selected via `CHROMIUM_PATH=/path/to/chromium npm test`. Set `REVIEW_ARTIFACTS=review-artifacts/chromium` (or `webkit`) to retain local synthetic screenshots and axe summaries. There is no production build step or runtime package dependency. For manual local review, serve the repository over HTTP, for example `python3 -m http.server 8000`, then open localhost. ES modules are not intended to run from a `file://` URL.
+Use Node.js 22+ and install the pinned development dependencies with `npm ci --ignore-scripts --no-audit --no-fund`. Then run `npm run check` and `npm test`. Browser tests use Playwright; install Chromium and WebKit with `npx playwright install --with-deps chromium webkit`. Run `BROWSER=chromium npm test` and `BROWSER=webkit npm test` separately. An existing compatible Chromium may be selected via `CHROMIUM_PATH=/path/to/chromium npm test`. Set `REVIEW_ARTIFACTS=review-artifacts/chromium` (or `webkit`) to retain local synthetic screenshots and axe summaries. There is no production build step or runtime package dependency. For manual local review, serve the repository over HTTP, for example `python3 -m http.server 8000`, then open localhost. ES modules are not intended to run from a `file://` URL.
 
 ## Prelaunch tests (after separate authorization for real test delivery)
 
@@ -98,7 +100,7 @@ Before this same-branch update, `main` remained at `3a845667aa1acace923ce200b3b6
 
 See [the focused review record](estimate-visual-accessibility-review.md) for confirmed fixes, rendered-state coverage, evidence limits, and the owner’s real-device checklist. The current exact-head CI result and evidence links are recorded in PR #1.
 
-## Launch preparation update (2026-11-05, UTC)
+## Earlier launch preparation before the endpoint was supplied (2026-11-05, UTC)
 
 **State: prepared for review, not activated or launch-approved.** The endpoint remains empty. No account was created, no live submission was sent, no paid plan was activated, and no deployment was performed. Gallery/testimonial sections stay hidden. This update verifies public documentation and local mocked behavior; it does not verify an owner's dashboard configuration.
 
@@ -127,7 +129,7 @@ The browser validates these fields before sending. Configure matching provider c
 
 **Provider capability gap:** [Workflow](https://help.formspree.io/articles/building-your-form/getting-started-with-workflow) documents all-plan required/type/length validation, including email validation when provided. It does not document exact-choice matching, the phone character/digit rule, or “email required only when Email is selected; phone otherwise.” Those server checks are not verified and must not be marked complete. Do not make email globally required, because that would break valid phone-only requests. Leave “Require work email” disabled for this homeowner form. The separate [Form Rules](https://help.formspree.io/articles/advanced-features/form-rules) feature is Business-only delivery routing and is not evidence of conditional field validation. Do not buy it to solve this gap.
 
-Before activation, inspect the actual account's capabilities. If these rules cannot be enforced, keep the endpoint blank and request approval for the smallest server-side validation solution or an explicitly revised requirement. No backend or change to the customer questions has been added in this preparation.
+Before activation, inspect the actual account's capabilities. If these rules cannot be enforced, keep launch blocked and request approval for the smallest server-side validation solution or an explicitly revised requirement. No backend or change to the customer questions has been added in this preparation.
 
 ### CAPTCHA and spam protection
 
@@ -139,8 +141,8 @@ The later implementation/test must cover an unsolved challenge, expired token, b
 
 ### Personal setup and decisions still needed
 
-1. Jason/Charles selects the business-controlled Formspree account and exact recipient inbox. The site's printed email address is not assumed to authorize routing. The owner signs in or creates the free account and verifies the account/linked recipient email using Formspree's verification message. No password needs to be shared. [Official account/form setup](https://help.formspree.io/articles/building-your-form/building-an-html-form).
-2. Create/select the estimate form, confirm its notification action targets that verified inbox, and share only its public `/f/FORM_ID` endpoint. Check there are no unwanted autoresponders, mailing-list actions or other recipients.
+1. The owner has supplied a form in their own Formspree account for now. Confirm the exact recipient inbox and eventual Charles-owned cutover. The site's printed email address is not assumed to authorize routing. The owner signs in or creates the free account and verifies the account/linked recipient email using Formspree's verification message. No password needs to be shared. [Official account/form setup](https://help.formspree.io/articles/building-your-form/building-an-html-form).
+2. The estimate form endpoint is supplied. Confirm its notification action targets that verified inbox. Check there are no unwanted autoresponders, mailing-list actions or other recipients.
 3. Confirm the approved test/production origins, resolve the validation gap and select the CAPTCHA path. The owner creates/configures any CAPTCHA keys personally. Approve the actual privacy wording and provider terms before activation.
 4. Confirm the test inbox and contact details we may submit, and authorize the bounded real test below. Account creation, secret setup and receipt confirmation remain owner steps unless a separately authorized secure workflow is arranged.
 
@@ -159,6 +161,15 @@ The [current Free plan](https://help.formspree.io/articles/account-management/ac
 3. For Email, inspect the notification's Reply-To address without sending a reply. [Formspree maps the `email` field to Reply-To](https://help.formspree.io/articles/building-your-form/email-reply-to-address). Do not mistake the notification sender for the visitor. Confirm a phone-only request does not require or invent an email address.
 4. With separate bounded approval for negative provider tests, bypass browser validation using only fake data: omit a required field, exceed a configured limit, supply invalid email, omit the selected contact channel, forge a choice, and test absent/invalid CAPTCHA. Each expected rejection must show no success and no delivered lead. Any unavailable server check remains a launch blocker.
 5. Use mocked/local transport for 429, quota errors, 5xx, malformed responses, offline/timeout and repeated-click tests. Do not flood the real service or deliberately create duplicates. After an uncertain real result, inspect dashboard/inbox before retrying.
-6. Return the private test copy to an empty endpoint after the test unless activation has been separately authorized. Report results and outstanding blockers, then request explicit final merge/deploy/publish approval. A green mocked suite is never the real-delivery signoff.
+6. Close the private test server/copy after the authorized test. Keep the configured review candidate unreleased; do not publish it as a side effect of testing. Report results and outstanding blockers, then request explicit final merge/deploy/publish approval. A green mocked suite is never the real-delivery signoff.
 
 **Prepared verification:** syntax checks and seven mocked adapter tests passed after the correction. They cover endpoint restrictions, JSON transport, both explicit acceptance shapes, HTTP and provider rejection, contradictory/malformed responses, network failures and timeout. No live endpoint was contacted. The combined candidate's browser/CI evidence is recorded separately and must match its exact final commit.
+
+
+## Configured candidate verification (2026-11-05, UTC)
+
+The endpoint-only production change uses the owner-supplied form. The adapter, interface, contact destinations, original assets and hidden future content are otherwise unchanged. New mocked tests load the actual config for Email, Text and Phone call, require the selected contact channel, omit an empty optional channel and verify one acceptance/payload. An additional browser test checks honeypot attributes and forwarding to fake transport; this does not prove Formspree filtering. An adapter test checks the real config and a replacement endpoint using injected fake transport only.
+
+Local production/test syntax, eight mocked adapter tests and whitespace checks passed. Local Chromium cannot start its required socket, and WebKit is not installed; their browser scenarios did not execute locally. Fresh exact-head CI must finish before the browser suite is reported passed. See [PR #3 checks](https://github.com/townsendjat-arch/flooring-site/pull/3/checks) and [the verification ledger](../project-management/TESTING.md). Earlier 56/56 results belong to the empty-endpoint candidate, not this revision.
+
+The live test above is prepared, not executed. To proceed, the owner must confirm the notification inbox is verified and enabled, specify approved test email/phone and origin, finish provider spam/CAPTCHA/domain/validation decisions, and authorize the small set of synthetic submissions. The owner then checks Formspree Inbox/Spam/Over Limit and the receiving mailbox/Junk, matches each unique marker and all fields, confirms exactly one provider record and notification per deliberate test, and checks Email Reply-To without sending a reply. Neither an on-screen acceptance nor passing CI verifies mailbox delivery.

@@ -77,3 +77,16 @@ The combined branch is based on `0efaf1661ab17a2015fad8425aa710122dfad840`, whic
 - Until the combined draft's exact-head jobs finish successfully, its browser and clean-install evidence is **pending**. The PR's checks and final review summary are the source for the resulting SHA, counts and links. No production build, linter or typechecker is configured.
 
 Future changes to the endpoint, CAPTCHA, provider behavior, content or code invalidate the current candidate and require affected tests plus fresh full exact-head checks before release approval.
+
+
+## Owner-supplied endpoint candidate: 2026-11-05 (UTC)
+
+This current section supersedes earlier empty-endpoint state descriptions without changing their historical results. The owner supplied `https://formspree.io/f/mdeejyvl`; this revision configures only that public module, adds contact/config/honeypot regressions and updates the handoff. UI code, HTML, styles, adapter, assets and workflow are unchanged from the prior candidate.
+
+- Local production/test syntax, eight mocked adapter tests and diff whitespace passed. The config smoke test injects fake transport even when reading the actual endpoint. No provider request was made.
+- The aggregate local attempts each report 8 passing unit tests and 53 browser tests blocked in startup hooks. Chromium fails its required process socket (`Operation not permitted`); Playwright WebKit is absent. Browser assertions never ran locally. These failures are not an application pass or new observed application defect.
+- Four new browser scenarios check real-config Email/Text/Phone call requirements and payloads plus the honeypot's accessibility/forwarding contract. There are now 53 unique browser scenarios (14 design/content, 39 form) and 8 mocked adapter tests, expected 61 per engine.
+- Fresh Chromium/WebKit CI for this configured candidate is **pending** until its exact-head run completes. The [PR #3 checks](https://github.com/townsendjat-arch/flooring-site/pull/3/checks) and final review report record the authoritative SHA and outcomes. Do not count the previous 56/56 results at `8fb3aabddf522a635075a6973b7369e485b9810a` as a pass for this code.
+- CI continues to block all non-local browser traffic; configured smoke cases install fake `fetch` before application scripts. No live submissions, real customer data or external notifications are part of CI.
+
+Actual Formspree configuration, HTTPS/CORS and domain behavior, validation/CAPTCHA/spam/quota controls, inbox notifications/Reply-To, manual devices/accessibility/content and final merge/deploy approval remain open. The site has not been released.

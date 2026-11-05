@@ -35,7 +35,9 @@ async function pageFor(t, mode='unconfigured', options={}) {
   // no test payload, even fake data, can reach Formspree or another host.
   await context.route('**/*', route=>route.request().url().startsWith(origin+'/')?route.continue():route.abort());
   const endpoint = mode==='unconfigured' ? '' : mode==='invalid-config' ? 'https://example.invalid/f/mockonly' : 'https://formspree.io/f/mockonly';
-  await page.route('**/estimate-config.js',route=>route.fulfill({contentType:'text/javascript',body:`export const estimateConfig = {endpoint:${JSON.stringify(endpoint)},timeoutMs:${mode==='slow'?5000:60}};`}));
+  // Candidate smoke tests load the real public config, but still replace fetch
+  // before any application script and block every non-local network request.
+  if (mode!=='configured-candidate') await page.route('**/estimate-config.js',route=>route.fulfill({contentType:'text/javascript',body:`export const estimateConfig = {endpoint:${JSON.stringify(endpoint)},timeoutMs:${mode==='slow'?5000:60}};`}));
   if (mode!=='unconfigured') {
     await page.addInitScript(({mode})=>{
       window.testRequests=[];
@@ -155,6 +157,50 @@ test('invalid configuration keeps the early notice and cannot submit',async t=>{
   await reachContact(page);await page.locator('#nextBtn').click();
   await errorContains(page,'Nothing was sent');await step(page,4);
   assert.equal(await page.evaluate(()=>testRequests.length),0);
+});
+
+for (const preference of ['Email','Text','Phone call']) {
+  test(`candidate configuration: ${preference} requires its contact channel and accepts one mocked request`,async t=>{
+    const {estimateConfig}=await import('../estimate-config.js');
+    const page=await pageFor(t,'configured-candidate');
+    assert.equal(await page.locator('#formAvailability').isHidden(),true);
+    await reachContact(page);
+    await page.locator(`[name=contactPreference][value="${preference}"]`).check();
+    await page.locator('[name=phone]').fill('');
+    await page.locator('[name=email]').fill('');
+    await page.locator('#nextBtn').click();await step(page,4);
+    const required=preference==='Email'?'email':'phone';
+    const optional=preference==='Email'?'phone':'email';
+    assert.equal(await page.locator(`[name=${required}]`).getAttribute('aria-invalid'),'true');
+    assert.equal(await page.locator(`[name=${optional}]`).evaluate(el=>el.required),false);
+    assert.equal(await page.evaluate(()=>testRequests.length),0);
+    await page.locator(`[name=${required}]`).fill(required==='email'?'visitor@example.invalid':'3035550100');
+    await page.locator('#nextBtn').click();await page.waitForSelector('[data-step="5"].active');
+    const requests=await page.evaluate(()=>testRequests);
+    assert.equal(requests.length,1);
+    assert.equal(requests[0].url,estimateConfig.endpoint);
+    assert.equal(requests[0].payload.contactPreference,preference);
+    assert.equal(optional in requests[0].payload,false);
+    assert.equal(requests[0].payload._gotcha,'');
+    assert.match(await page.locator('[data-step="5"]').textContent(),/accepted by the form service/);
+    assert.match(await page.locator('[data-step="5"]').textContent(),/does not book an appointment/);
+  });
+}
+
+test('honeypot stays visually hidden and outside the tab order, and is forwarded for filtering',async t=>{
+  const page=await pageFor(t,'success');
+  const trap=page.locator('[name=_gotcha]');
+  assert.equal(await trap.getAttribute('tabindex'),'-1');
+  assert.equal(await trap.getAttribute('autocomplete'),'off');
+  assert.equal(await trap.evaluate(el=>el.closest('.form-honeypot').getAttribute('aria-hidden')),'true');
+  assert.equal(await trap.evaluate(el=>el.required),false);
+  assert.equal(await trap.evaluate(el=>getComputedStyle(el.closest('.form-honeypot')).clipPath),'inset(50%)');
+  await reachContact(page);
+  // Simulate a bot filling the trap. Only fake transport receives this value;
+  // the provider, not this client, must quarantine/reject it in a real test.
+  await trap.evaluate(el=>el.value='synthetic-spam-test');
+  await page.locator('#nextBtn').click();await page.waitForSelector('[data-step="5"].active');
+  assert.equal(await page.evaluate(()=>testRequests[0].payload._gotcha),'synthetic-spam-test');
 });
 
 test('documented provider next response confirms in place without following its URL',async t=>{
