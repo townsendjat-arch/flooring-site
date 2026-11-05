@@ -234,7 +234,11 @@ for (const width of [320, 375, 812]) {
 test('enlarged phone text keeps navigation reachable without horizontal scrolling', async t => {
   const page = await pageFor(t, { viewport: { width: 320, height: 640 } });
   await page.addStyleTag({ content: 'html{font-size:200%}' });
-  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true);
+  await save(page, 'narrow-navigation-enlarged-text');
+  const overflow = await page.evaluate(() => [...document.querySelectorAll('body *')].filter(el => {
+    const box = el.getBoundingClientRect(); return box.width && (box.left < -1 || box.right > innerWidth + 1);
+  }).map(el => ({ tag: el.tagName, class: el.className, width: el.getBoundingClientRect().width, text: el.textContent.slice(0,70) })));
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true, JSON.stringify(overflow));
   for (const link of await page.locator('nav a').all()) {
     assert.equal(await link.isVisible(), true);
     await link.focus();
