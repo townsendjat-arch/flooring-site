@@ -1,0 +1,54 @@
+name: Charcoal design review
+
+on:
+  pull_request:
+    branches: [main, review/estimate-form-safe-submit]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: charcoal-design-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  design-and-form-tests:
+    if: github.head_ref == 'review/charcoal-white-design' && github.event.pull_request.head.repo.full_name == github.repository
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CI: true
+      BROWSER: ${{ matrix.browser }}
+      REVIEW_ARTIFACTS: review-artifacts/${{ matrix.browser }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Install pinned test dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Install test browser and its system dependencies
+        run: npx --no-install playwright install --with-deps ${{ matrix.browser }}
+      - name: Check syntax and whitespace
+        run: npm run check && node --check tests/design-browser.test.cjs && node --check tests/estimate-browser.test.cjs && git diff --check HEAD^ HEAD
+      - name: Run design, form and mocked adapter tests on exact head
+        run: npm test
+      - name: Retain synthetic review screenshots and scan summaries briefly
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: charcoal-review-${{ matrix.browser }}
+          path: review-artifacts/${{ matrix.browser }}/
+          if-no-files-found: ignore
+          retention-days: 7
+          compression-level: 9
