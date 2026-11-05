@@ -32,7 +32,7 @@ No lead data is logged or saved in browser storage by this code. Draft values st
 
 1. Copy the owner's approved public endpoint in the form `https://formspree.io/f/FORM_ID` into `endpoint` in `estimate-config.js`. Do not use an email-address endpoint or a test placeholder on a deployed site.
 2. Keep the default 15-second timeout unless testing warrants a change.
-3. Recheck provider acceptance semantics against the selected form. This adapter requires an HTTP success plus JSON `ok: true`, with no errors. HTML, malformed JSON, and ambiguous responses fail closed.
+3. Recheck provider acceptance semantics against the selected form. The prepared adapter requires HTTP success plus either JSON `ok: true` or the current official SDK's raw success marker, a nonempty `next` string. It rejects contradictory error fields, malformed success markers, HTML, malformed JSON, and ambiguous responses. It never follows `next`. These are mocked contract checks, not proof of live acceptance or email delivery.
 4. Do not add a live endpoint to automated tests. They replace transport and block outside requests; all contact data is fictional.
 
 ## Local review
@@ -97,3 +97,68 @@ Before this same-branch update, `main` remained at `3a845667aa1acace923ce200b3b6
 ## Final visual and accessibility review
 
 See [the focused review record](estimate-visual-accessibility-review.md) for confirmed fixes, rendered-state coverage, evidence limits, and the owner’s real-device checklist. The current exact-head CI result and evidence links are recorded in PR #1.
+
+## Launch preparation update (2026-11-05, UTC)
+
+**State: prepared for review, not activated or launch-approved.** The endpoint remains empty. No account was created, no live submission was sent, no paid plan was activated, and no deployment was performed. Gallery/testimonial sections stay hidden. This update verifies public documentation and local mocked behavior; it does not verify an owner's dashboard configuration.
+
+### Concrete adapter correction
+
+The earlier tests used only `{ "ok": true }`. Formspree's current official client also recognizes raw `{ "next": "test-redirect-url" }` as a successful server response. The adapter previously treated that documented shape as uncertain and also allowed contradictory `ok: true` responses with a legacy `error` or malformed `errors` value. The prepared correction handles the documented shape, rejects those contradictions and does not navigate to any returned URL. Invalid JSON is an unconfirmed response, not evidence that the request failed to arrive.
+
+Evidence is pinned to vendor commit `3148bfbf06ed1738c618e160684d73a885d4237a`: the [raw response parser](https://github.com/formspree/formspree-js/blob/3148bfbf06ed1738c618e160684d73a885d4237a/packages/formspree-core/src/core.ts), [success/error predicates](https://github.com/formspree/formspree-js/blob/3148bfbf06ed1738c618e160684d73a885d4237a/packages/formspree-core/src/submission.ts), and [raw Response success fixture](https://github.com/formspree/formspree-js/blob/3148bfbf06ed1738c618e160684d73a885d4237a/packages/formspree-core/test/core.test.ts). This is a server-JSON fixture, not an already-transformed SDK result.
+
+### Validation settings to prepare
+
+The browser validates these fields before sending. Configure matching provider checks where supported. Exact field names are case-sensitive. Values are trimmed before sending; optional blank values are omitted.
+
+| Field | Required and accepted data | Length ceiling |
+| --- | --- | --- |
+| `projectType` | One of Custom Shower, Bathroom Tile, Flooring, Backsplash, Stone, Tile Repair, Basement Refinishing, Not Sure Yet | 20 |
+| `details` | Optional text | 3000 |
+| `location` | Nonblank ZIP code or city; not restricted to a ZIP-only pattern | 120 |
+| `timing` | As soon as possible, Within 1–3 months, Within 3–6 months, Just researching | 19 |
+| `spaceNote` | Optional text | 500 |
+| `name` | Nonblank text | 100 |
+| `phone` | Required for Text/Phone call; otherwise optional. Any supplied phone has 10–15 digits and only digits, spaces, `+`, parentheses, period or hyphen | 30 |
+| `email` | Required for Email; otherwise optional. Any supplied value must be a valid email | 254 |
+| `contactPreference` | Text, Phone call or Email | 10 |
+| `_gotcha` | Hidden honeypot; legitimate visitors leave it blank | Do not make required |
+
+**Provider capability gap:** [Workflow](https://help.formspree.io/articles/building-your-form/getting-started-with-workflow) documents all-plan required/type/length validation, including email validation when provided. It does not document exact-choice matching, the phone character/digit rule, or “email required only when Email is selected; phone otherwise.” Those server checks are not verified and must not be marked complete. Do not make email globally required, because that would break valid phone-only requests. Leave “Require work email” disabled for this homeowner form. The separate [Form Rules](https://help.formspree.io/articles/advanced-features/form-rules) feature is Business-only delivery routing and is not evidence of conditional field validation. Do not buy it to solve this gap.
+
+Before activation, inspect the actual account's capabilities. If these rules cannot be enforced, keep the endpoint blank and request approval for the smallest server-side validation solution or an explicitly revised requirement. No backend or change to the customer questions has been added in this preparation.
+
+### CAPTCHA and spam protection
+
+The current form sends JSON with an explicit field allowlist; it has no CAPTCHA widget or response-token field. Enabling a provider CAPTCHA switch alone is not a complete integration. Formspree's [hosted interstitial CAPTCHA](https://formspree.io/blog/recaptcha-methods/) requires navigation and is unsuitable for this AJAX flow.
+
+A supported inline path must be selected and tested first, for example [custom reCAPTCHA v2](https://help.formspree.io/articles/form-and-project-settings/adding-a-custom-recaptcha-v2-key) with a `g-recaptcha-response` token, or [Turnstile](https://help.formspree.io/articles/form-and-project-settings/protecting-your-forms-with-cloudflare-turnstile) with `cf-turnstile-response`. That requires the owner's approved domain(s), public site key, private secret configured only in the provider dashboard, and token handling in the browser. Do not place the secret in code, chat, or test artifacts. Do not disable protection merely to make a test pass. No CAPTCHA vendor or credentials have been selected or installed here.
+
+The later implementation/test must cover an unsolved challenge, expired token, blocked script, failed token verification, reopening the dialog, deliberate retry with a fresh token, keyboard/VoiceOver access and an iPhone success case. Keep the honeypot; [Formspree documents `_gotcha`](https://help.formspree.io/articles/building-your-form/honeypot-spam-filtering) as an additional filter, not a replacement for the chosen protection.
+
+### Personal setup and decisions still needed
+
+1. Jason/Charles selects the business-controlled Formspree account and exact recipient inbox. The site's printed email address is not assumed to authorize routing. The owner signs in or creates the free account and verifies the account/linked recipient email using Formspree's verification message. No password needs to be shared. [Official account/form setup](https://help.formspree.io/articles/building-your-form/building-an-html-form).
+2. Create/select the estimate form, confirm its notification action targets that verified inbox, and share only its public `/f/FORM_ID` endpoint. Check there are no unwanted autoresponders, mailing-list actions or other recipients.
+3. Confirm the approved test/production origins, resolve the validation gap and select the CAPTCHA path. The owner creates/configures any CAPTCHA keys personally. Approve the actual privacy wording and provider terms before activation.
+4. Confirm the test inbox and contact details we may submit, and authorize the bounded real test below. Account creation, secret setup and receipt confirmation remain owner steps unless a separately authorized secure workflow is arranged.
+
+The [current Free plan](https://help.formspree.io/articles/account-management/account-limits) starts at 50 monthly submissions, up to two linked notification emails and 30 days of submission history. No paid plan is needed just to perform a small authorized test. Record remaining quota before testing. New [over-limit behavior](https://help.formspree.io/articles/form-and-project-settings/over-limit-submissions) can hold submissions without notification emails or actions even while the visitor-facing form still works. Do not deliberately exhaust the quota. Dashboard and inbox checks are essential.
+
+[Restrict to Domain](https://help.formspree.io/articles/form-and-project-settings/restrict-to-domain) is documented on all plans. Apex domains include subdomains; a specific subdomain restricts to that subdomain. Wrong-origin submissions go to Spam rather than necessarily returning an error. It relies on the browser's Referer header. The adapter's `strict-origin-when-cross-origin` policy matches the documented requirement, but real-origin behavior still needs verification. Do not switch production restrictions off to test from an unrelated preview.
+
+### Ready-to-run real delivery test, pending approval
+
+**Inputs:** exact candidate commit, approved private/test origin, owner-controlled form endpoint, verified notification inbox, selected CAPTCHA/site key, completed provider validation, and owner-approved test email/phone. Use a private controlled test copy; no public deployment is authorized. A localhost success alone does not verify production-origin restrictions.
+
+**Test data:** name `Website Launch Test`, project `Not Sure Yet`, location `80015`, timing `Just researching`, details `TEST ONLY - no estimate or appointment requested - FS-YYYYMMDD-HHMM-01`, optional space note blank and `_gotcha` blank. Use only the approved test contact address/number; never real homeowner details. Replace the unique marker for each test and record it with the result.
+
+1. Verify baseline dashboard count and remaining quota. Send one Email-preference request with the approved email and no phone; one Text request with the approved test phone and no email; one Phone call request with the approved test phone. These create notification emails only; the website does not send an SMS or place a call.
+2. For each request, require all three independent observations: the browser's acceptance screen; exactly one matching normal Inbox submission in Formspree, not Spam/Over Limit; and exactly one notification in the approved mailbox. Record UTC time, marker, candidate SHA and pass/fail. Verify every field and contact preference. Check Spam/Junk if missing; missing inbox receipt is not a delivery pass.
+3. For Email, inspect the notification's Reply-To address without sending a reply. [Formspree maps the `email` field to Reply-To](https://help.formspree.io/articles/building-your-form/email-reply-to-address). Do not mistake the notification sender for the visitor. Confirm a phone-only request does not require or invent an email address.
+4. With separate bounded approval for negative provider tests, bypass browser validation using only fake data: omit a required field, exceed a configured limit, supply invalid email, omit the selected contact channel, forge a choice, and test absent/invalid CAPTCHA. Each expected rejection must show no success and no delivered lead. Any unavailable server check remains a launch blocker.
+5. Use mocked/local transport for 429, quota errors, 5xx, malformed responses, offline/timeout and repeated-click tests. Do not flood the real service or deliberately create duplicates. After an uncertain real result, inspect dashboard/inbox before retrying.
+6. Return the private test copy to an empty endpoint after the test unless activation has been separately authorized. Report results and outstanding blockers, then request explicit final merge/deploy/publish approval. A green mocked suite is never the real-delivery signoff.
+
+**Prepared verification:** syntax checks and seven mocked adapter tests passed after the correction. They cover endpoint restrictions, JSON transport, both explicit acceptance shapes, HTTP and provider rejection, contradictory/malformed responses, network failures and timeout. No live endpoint was contacted. The combined candidate's browser/CI evidence is recorded separately and must match its exact final commit.

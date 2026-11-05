@@ -49,6 +49,8 @@ async function pageFor(t, mode='unconfigured', options={}) {
         if (mode==='server-error') return {ok:false,status:503};
         if (mode==='rate-limit') return {ok:false,status:429};
         if (mode==='unconfirmed') return {ok:true,json:async()=>({})};
+        if (mode==='provider-next') return {ok:true,json:async()=>({next:'https://example.invalid/do-not-follow'})};
+        if (mode==='contradictory-error') return {ok:true,json:async()=>({ok:true,error:'Rejected by the provider'})};
         return response();
       };
     },{mode});
@@ -153,6 +155,24 @@ test('invalid configuration keeps the early notice and cannot submit',async t=>{
   await reachContact(page);await page.locator('#nextBtn').click();
   await errorContains(page,'Nothing was sent');await step(page,4);
   assert.equal(await page.evaluate(()=>testRequests.length),0);
+});
+
+test('documented provider next response confirms in place without following its URL',async t=>{
+  const page=await pageFor(t,'provider-next');
+  const url=page.url();
+  await reachContact(page);await page.locator('#nextBtn').click();
+  await page.waitForSelector('[data-step="5"].active');
+  assert.equal(page.url(),url);
+  assert.equal(await page.evaluate(()=>testRequests.length),1);
+  assert.match(await page.locator('.confirmation').textContent(),/accepted by the form service/);
+});
+test('contradictory provider success and error fields never show confirmation',async t=>{
+  const page=await pageFor(t,'contradictory-error');
+  await reachContact(page);await page.locator('#nextBtn').click();
+  await errorContains(page,'could not confirm');await step(page,4);
+  assert.equal(await page.locator('[name=name]').inputValue(),'Test visitor');
+  assert.equal(await page.evaluate(()=>testRequests.length),1);
+  assert.equal(await page.locator('[data-step="5"]').isHidden(),true);
 });
 
 test('required choices, Enter progression, textarea newline, close/Escape preserve inputs and focus',async t=>{

@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   design-and-form-tests:
-    if: github.head_ref == 'review/charcoal-white-design' && github.event.pull_request.head.repo.full_name == github.repository
+    if: (github.head_ref == 'review/charcoal-white-design' || github.head_ref == 'release/combined-candidate-2026-11-05') && github.event.pull_request.head.repo.full_name == github.repository
     strategy:
       fail-fast: false
       matrix:
@@ -40,7 +40,7 @@ jobs:
       - name: Install test browser and its system dependencies
         run: npx --no-install playwright install --with-deps ${{ matrix.browser }}
       - name: Check syntax and whitespace
-        run: npm run check && node --check tests/design-browser.test.cjs && node --check tests/estimate-browser.test.cjs && git diff --check HEAD^ HEAD
+        run: npm run check && node --check tests/design-browser.test.cjs && node --check tests/estimate-browser.test.cjs && node --check tests/estimate-service.test.cjs && git diff --check "${{ github.event.pull_request.base.sha }}" HEAD
       - name: Run design, form and mocked adapter tests on exact head
         run: npm test
       - name: Retain synthetic review screenshots and scan summaries briefly

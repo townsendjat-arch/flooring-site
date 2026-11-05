@@ -65,3 +65,15 @@ The containing revision adds the authorized hidden future gallery/testimonials, 
 - Historical October screenshot artifacts have expired and cannot serve as new visual verification. New screenshots require visual review and durable authorized delivery before short-lived CI artifacts expire.
 
 Actual devices, Safari application, screen readers, native browser zoom, provider protection and real inbox delivery remain unverified. No passing mock or screenshot authorizes launch.
+
+## Combined candidate preparation: 2026-11-05
+
+The combined branch is based on `0efaf1661ab17a2015fad8425aa710122dfad840`, which contains PR #1 and PR #2. Its new Formspree parsing correction, related regression tests, test-only workflow allowance and tracking updates form a distinct candidate. Do not attribute the base's 51/51 Chromium and 51/51 WebKit results to this new head.
+
+- Local production/test syntax and mocked adapter unit tests are available. The full main-to-candidate diff is checked for whitespace and preservation of original assets, endpoint, visible content and hidden future sections.
+- Local Chromium aggregate startup fails before browser scenarios execute because its required process socket is prohibited. WebKit's executable is absent. These are infrastructure blockers, not passing browser tests or observed application assertion failures. Offline `npm ci` could not find one cached development package; already-installed matching dependencies were copied for the local attempt, not counted as a clean install.
+- The existing isolated workflow now also admits the exact combined candidate branch. It checks out the PR's exact head, performs a clean locked dependency install, validates all test-file syntax and the complete PR-base diff, and runs both engines. It has no publication/deployment step, uses read-only contents access, retains no checkout credentials and blocks non-local browser traffic.
+- Two new browser scenarios cover the current raw `next` acceptance response without navigation and contradictory success/error rejection. Unit fixtures cover malformed bodies, explicit error variants, provider validation rejections and transport guarantees.
+- Until the combined draft's exact-head jobs finish successfully, its browser and clean-install evidence is **pending**. The PR's checks and final review summary are the source for the resulting SHA, counts and links. No production build, linter or typechecker is configured.
+
+Future changes to the endpoint, CAPTCHA, provider behavior, content or code invalidate the current candidate and require affected tests plus fresh full exact-head checks before release approval.

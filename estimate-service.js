@@ -30,9 +30,24 @@ export async function sendEstimate(payload, config, fetchImpl = globalThis.fetch
     if (!response.ok) {
       throw new EstimateError(response.status >= 500 ? "unconfirmed" : response.status === 429 ? "rate-limit" : "rejected");
     }
-    // Formspree's successful JSON response must explicitly confirm acceptance.
-    const result = await response.json();
-    if (result?.ok !== true || (Array.isArray(result.errors) && result.errors.length)) {
+    let result;
+    try {
+      result = await response.json();
+    } catch {
+      throw new EstimateError(controller.signal.aborted ? "timeout" : "unconfirmed");
+    }
+    // Formspree's current SDK parses a raw JSON `next` string as success.
+    // Retain the existing explicit `ok: true` response shape, but reject
+    // contradictory errors and malformed success markers. Never follow `next`.
+    const object = result !== null && typeof result === "object" && !Array.isArray(result);
+    const hasNext = object && Object.hasOwn(result, "next");
+    const hasOk = object && Object.hasOwn(result, "ok");
+    const validNext = hasNext && typeof result.next === "string" && result.next.trim().length > 0;
+    const errors = object && Object.hasOwn(result, "errors");
+    if (!object || Object.hasOwn(result, "error") ||
+        (errors && (!Array.isArray(result.errors) || result.errors.length > 0)) ||
+        (hasOk && result.ok !== true) || (hasNext && !validNext) ||
+        !(result.ok === true || validNext)) {
       throw new EstimateError("unconfirmed");
     }
     return result;

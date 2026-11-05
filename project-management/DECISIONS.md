@@ -28,3 +28,9 @@ Use the gate IDs and completion evidence in [TASKS.md](TASKS.md), not a second p
 Jason explicitly approved implementing and publishing the bounded pass on existing PR #2 while preserving PR #1 as its dependency: hidden future gallery and testimonial scaffolds, improved mobile workmanship visibility/navigation, truthful photo instructions and removal of customer-facing development placeholders, regression tests and tracking. The original photos, full-color logo and charcoal/white direction remain required.
 
 This authorization supersedes the October documentation-only restriction for these specific changes. Do not wait for Charles's information to finish the approved development. No unconfirmed service territory, new testimonial or other business fact is invented; future content stays hidden pending genuine approved material. Merge, deployment, provider activation and purchases remain separately unapproved. No outside outreach is part of this implementation.
+
+## 2026-11-05 next-phase launch preparation
+
+Jason authorized preparing the exact combined candidate and running available automated tests, with gallery/testimonials hidden, no redesigns or additional features, and no merge, deployment or website publication without final approval. A separate combined draft branch preserves PR #1 and PR #2 and enables full-diff review against main. This replaces the earlier proposed sequential form-then-design release procedure; it does not authorize a main update.
+
+Provider review found that Formspree's current SDK treats a raw `next` string as success, while the previous parser required `ok: true`. The focused readiness correction also rejects contradictory errors rather than showing false success. No endpoint, provider account, notification destination or CAPTCHA behavior is activated by this change. The exact changed candidate requires new automated evidence; the earlier 51/51 engine results belong only to `0efaf166`.

@@ -12,6 +12,12 @@ Last implementation review: **2026-11-05 (UTC)**. Historical test dates below ar
 - Observed `main`: `3a845667aa1acace923ce200b3b6f3544ec20e0e`. The latest observed Pages deployment is [2026-10-08 run 37811969212](https://github.com/townsendjat-arch/flooring-site/actions/runs/37811969212), not either review package.
 - The October tracking addition was documentation-only. The November focused pass changes code and tests; use [PR commits](https://github.com/townsendjat-arch/flooring-site/pull/2/commits) and [checks](https://github.com/townsendjat-arch/flooring-site/pull/2/checks) for its exact revision and its own CI result.
 
+### Combined launch-preparation candidate
+
+The next phase uses `release/combined-candidate-2026-11-05`, based on PR #2 head `0efaf1661ab17a2015fad8425aa710122dfad840`. That head already contains PR #1; no main update or intermediate form-only release is required to combine them. Both existing draft PRs stay unchanged. The combined draft targets `main` so its full diff is reviewable in one place.
+
+The only new production correction is the Formspree response parser: accept the current documented raw `next` success marker without navigating to it, and reject contradictory error fields and malformed bodies. Mocked unit/browser regressions cover this correction. The endpoint remains empty, future content hidden, and all live-provider/manual/device/content gates remain open. Exact-head CI must complete before automated verification is marked passed.
+
 ## Status index
 
 - **Completed:** the development, bounded review and tracking work listed below. None of it is marked released.
@@ -52,7 +58,7 @@ All items below remain open unless new dated evidence and the required approval 
 | C5 | After explicit authorization, configure the approved endpoint and test synthetic submissions for each contact preference | Exactly one provider record AND one received notification, including spam checks, field mapping and reply behavior; actual delivery remains **unverified** |
 | C6 | Run actual Safari/iPhone/Android, VoiceOver/TalkBack and native 200%/400% zoom checks | Recorded manual results and resolution/disposition of findings; engine emulation is not a substitute |
 | C7 | Confirm actual service territory, contact links, business/project copy and photo permissions; approve any genuine future gallery or testimonial content | Charles/owner approval of the final copy and any newly supplied content |
-| C8 | After the separately approved form merge, retarget/rebase the design PR and rerun the complete suite on the resulting release candidate | New exact SHA, passing checks, final approval of merge/deployment and rollback plan |
+| C8 | Review the full combined candidate against main; complete its exact-head checks, then obtain approval for one main update and deployment | Exact approved SHA/tree, passing checks, final merge/deploy approval, rollback plan and unchanged-base check; do not merge PR #1 as an intermediate release |
 | C9 | Verify the approved origin, provider dashboard and inbox after an authorized release | Post-release evidence before marking any functionality launched |
 
 Detailed provider and acceptance checklists remain in [estimate-form.md](../docs/estimate-form.md); do not duplicate or silently relax them here.
@@ -61,4 +67,4 @@ Detailed provider and acceptance checklists remain in [estimate-form.md](../docs
 
 The 2026-11-05 focused gallery/testimonial/mobile/content implementation is authorized; this supersedes the earlier documentation-only scope. Additional features remain outside that bounded pass. Do not merge, deploy, activate integrations, purchase services or contact outside parties without approval. Customer acquisition remains **research-only**. No customer lead data belongs in these public tracking files.
 
-Next owner decision: review the existing PR packages separately, then decide which launch gates to authorize. Track decisions in [DECISIONS.md](DECISIONS.md); update verification in [TESTING.md](TESTING.md).
+Next owner decisions: resolve the remaining provider/content/manual checks, then review the exact combined candidate and approve or decline its release. Launch preparation does not grant release approval. Track decisions in [DECISIONS.md](DECISIONS.md); update verification in [TESTING.md](TESTING.md).

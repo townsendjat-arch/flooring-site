@@ -19,18 +19,58 @@ test('success uses JSON with credentials omitted and explicit acceptance', async
     assert.equal(options.method, 'POST');
     assert.equal(options.credentials, 'omit');
     assert.equal(options.redirect, 'error');
+    assert.equal(options.referrerPolicy, 'strict-origin-when-cross-origin');
+    assert.deepEqual(options.headers, {'Accept':'application/json','Content-Type':'application/json'});
     assert.deepEqual(JSON.parse(options.body), payload);
     return {ok:true, json:async()=>({ok:true})};
   });
 });
+test('current Formspree raw success fixture is accepted without following next', async () => {
+  const {sendEstimate} = await service;
+  // From Formspree's core.test.ts at 3148bfbf06ed1738c618e160684d73a885d4237a.
+  // This is the raw response body fed to res.json(), not an SDK result object.
+  const body = {next:'test-redirect-url'};
+  let calls = 0;
+  const result = await sendEstimate({}, config, async () => {
+    calls += 1;
+    return new Response(JSON.stringify(body), {status:200});
+  });
+  assert.deepEqual(result, body);
+  assert.equal(calls, 1, 'No redirect or follow-up request');
+});
 test('HTTP failures, malformed JSON, and ambiguous responses are not success', async () => {
   const {sendEstimate} = await service;
   for (const [response, code] of [
-    [{ok:false,status:422},'rejected'], [{ok:false,status:429},'rate-limit'], [{ok:false,status:500},'unconfirmed'],
+    [{ok:false,status:400},'rejected'], [{ok:false,status:403},'rejected'],
+    [{ok:false,status:404},'rejected'], [{ok:false,status:422},'rejected'],
+    [{ok:false,status:429},'rate-limit'], [{ok:false,status:500},'unconfirmed'],
     [{ok:true,json:async()=>({})},'unconfirmed'],
     [{ok:true,json:async()=>({ok:true,errors:[{message:'no'}]})},'unconfirmed'],
-    [{ok:true,json:async()=>{throw new Error('bad JSON')}},'network'],
+    [{ok:true,json:async()=>{throw new Error('bad JSON')}},'unconfirmed'],
   ]) await assert.rejects(sendEstimate({},config,async()=>response),{code});
+});
+test('contradictory errors and malformed success bodies fail closed', async () => {
+  const {sendEstimate} = await service;
+  const bodies = [null, [], true, 'accepted', {}, {ok:false}, {ok:'true'},
+    {next:42}, {next:''}, {next:'   '}, {ok:false,next:'test-redirect-url'},
+    {ok:true,next:null}, {ok:true,error:'rejected'}, {ok:true,error:''},
+    {ok:true,errors:'invalid'}, {ok:true,errors:null}, {ok:true,errors:{}},
+    {next:'test-redirect-url',errors:[{field:'email',code:'TYPE_EMAIL',message:'Invalid email'}]},
+    {next:'test-redirect-url',error:'CAPTCHA validation failed'}];
+  for (const body of bodies) {
+    await assert.rejects(sendEstimate({},config,async()=>new Response(JSON.stringify(body))), {code:'unconfirmed'}, JSON.stringify(body));
+  }
+});
+test('documented provider validation errors never produce success or an automatic retry', async () => {
+  const {sendEstimate} = await service;
+  for (const code of ['INACTIVE','BLOCKED','FORM_NOT_FOUND','REQUIRED_FIELD_MISSING','REQUIRED_FIELD_EMPTY','TYPE_EMAIL']) {
+    let calls = 0;
+    await assert.rejects(sendEstimate({},config,async()=>{
+      calls += 1;
+      return new Response(JSON.stringify({errors:[{code,message:'Test provider rejection'}]}), {status:422});
+    }), {code:'rejected'});
+    assert.equal(calls,1);
+  }
 });
 test('network failures and timeouts remain distinct and abort transport', async () => {
   const {sendEstimate} = await service;
