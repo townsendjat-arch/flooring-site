@@ -146,11 +146,14 @@ test('homepage keyboard focus, hover, active, disabled and selected states stay 
   for (const link of await page.locator('nav a').all()) {
     const target = await link.getAttribute('href');
     assert.equal(await page.locator(target).count(), 1);
-    await link.focus(); await page.keyboard.press('Enter');
+    await link.focus();
+    assert.equal(await link.evaluate(el => el === document.activeElement), true);
+    await Promise.all([page.waitForURL(url => url.hash === target, { timeout: 5000 }), page.keyboard.press('Enter')]);
     assert.equal(new URL(page.url()).hash, target);
     assert.equal(await page.locator(target).isVisible(), true);
   }
-  await page.locator('.site-header .brand').focus(); await page.keyboard.press('Enter');
+  await page.locator('.site-header .brand').focus();
+  await Promise.all([page.waitForURL(url => url.hash === '#top', { timeout: 5000 }), page.keyboard.press('Enter')]);
   assert.equal(new URL(page.url()).hash, '#top');
   for (const selector of ['.site-header .brand','nav a','.phone-link','.hero-actions .primary','.hero-actions .secondary','.project-card','.craftsmanship .secondary','.footer-contact a']) {
     const element = page.locator(selector).first();
@@ -218,14 +221,16 @@ for (const width of [320, 375, 812]) {
       const bounds = await link.boundingBox();
       assert.ok(bounds.height >= 44 && bounds.width >= 44);
       assert.ok(bounds.x >= -1 && bounds.x + bounds.width <= width + 1);
-      await link.focus(); await page.keyboard.press('Enter');
       const target = await link.getAttribute('href');
+      await link.focus();
+      assert.equal(await link.evaluate(el => el === document.activeElement), true);
+      await Promise.all([page.waitForURL(url => url.hash === target, { timeout: 5000 }), page.keyboard.press('Enter')]);
       assert.equal(new URL(page.url()).hash, target);
       const top = await page.locator(target).evaluate(el => el.getBoundingClientRect().top);
       const headerBottom = await page.locator('.site-header').evaluate(el => el.getBoundingClientRect().bottom);
       assert.ok(top >= headerBottom - 1, 'Anchor content is not hidden by the header');
     }
-    await page.locator('nav a').first().tap();
+    await Promise.all([page.waitForURL(url => url.hash === '#work', { timeout: 5000 }), page.locator('nav a').first().tap()]);
     assert.equal(new URL(page.url()).hash, '#work');
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true);
   });
