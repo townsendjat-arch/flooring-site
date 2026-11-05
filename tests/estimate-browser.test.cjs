@@ -75,10 +75,36 @@ async function reachContact(page) {
 }
 async function errorContains(page,text){await page.waitForFunction(text=>document.querySelector('#formError').textContent.includes(text),text);}
 
+async function waitForAvailabilityInView(page, label) {
+  // Native dialog focus/scroll may settle after the click resolves, especially in WebKit.
+  // Wait for the same full-visibility condition asserted below; do not scroll or focus for the app.
+  try {
+    await page.waitForFunction(() => {
+      const el = document.querySelector('#formAvailability');
+      const dialog = document.querySelector('#estimateDialog');
+      const r = el.getBoundingClientRect(), d = dialog.getBoundingClientRect();
+      return dialog.open && document.activeElement === el && r.top >= Math.max(0, d.top) && r.bottom <= Math.min(innerHeight, d.bottom);
+    }, null, { timeout: 3000 });
+  } catch (error) {
+    const geometry = await page.evaluate(() => ({
+      notice: document.querySelector('#formAvailability').getBoundingClientRect().toJSON(),
+      dialog: document.querySelector('#estimateDialog').getBoundingClientRect().toJSON(),
+      active: document.activeElement?.id, height: innerHeight,
+      scroll: document.querySelector('#estimateDialog').scrollTop,
+    }));
+    if (process.env.REVIEW_ARTIFACTS) {
+      await mkdir(process.env.REVIEW_ARTIFACTS, { recursive: true });
+      await page.screenshot({ path: path.join(process.env.REVIEW_ARTIFACTS, `notice-${label}-${page.viewportSize().width}-failure.png`) });
+    }
+    throw new Error(`Availability notice did not settle in view (${label}): ${JSON.stringify(geometry)}`, { cause: error });
+  }
+}
+
 for (const viewport of [{width:1280,height:900},{width:375,height:812}]) {
   test(`${viewport.width}px: unavailable notice is first, visible on open, and offers existing contact links`,async t=>{
     const page=await pageFor(t,'unconfigured',{viewport});
     const notice=page.locator('#formAvailability');
+    await waitForAvailabilityInView(page, 'initial');
     assert.equal(await notice.isVisible(),true);
     assert.match(await notice.textContent(),/Online requests are not available yet/);
     assert.equal(await notice.locator('a').nth(0).getAttribute('href'),'tel:+13033568421');
@@ -99,6 +125,7 @@ for (const viewport of [{width:1280,height:900},{width:375,height:812}]) {
     await page.locator('#estimateDialog').evaluate(el=>{el.scrollTop=el.scrollHeight;});
     await page.keyboard.press('Escape');
     await page.locator('[data-open-estimate]').first().click();
+    await waitForAvailabilityInView(page, 'reopen');
     assert.equal(await notice.isVisible(),true);
     assert.equal(await notice.evaluate(el=>el===document.activeElement),true);
     assert.equal(await notice.evaluate(el=>{
